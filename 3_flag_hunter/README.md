@@ -52,7 +52,7 @@ evidence it added — then the flag if found.
     ENGINE loop (engine.py):
        rank tools (ranker.py) = base_weight[category] x applicable(evidence)
        run top tool (tools.py) -> writes facts/signals into evidence.py
-       flag miner (flag_miner.py) sweeps for CYF{...} + decode ladder
+       flag miner (flag_miner.py) sweeps for FLAG{...} + decode ladder
        repeat -> ranking changes because evidence changed  = adaptive, no generative model
 
 ## Files
@@ -74,7 +74,7 @@ evidence it added — then the flag if found.
 ## Current real coverage (measured, not claimed)
 
 `python batch.py ./challenges --difficulty medium` against the bundled test
-corpus: 13/13 solved (forensics x3, stego x2, crypto x4, hardware/osint/pwn/
+corpus: 14/14 solved (crypto x5, forensics x3, stego x2, hardware/osint/pwn/
 reverse x1 each). web isn't in that corpus because it's a network-target
 challenge, not a file — validated separately against a local test server
 (see commit history). This is "each wired capability provably works end to

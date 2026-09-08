@@ -1,3 +1,0 @@
-n=1000000016000000063
-e=65537
-the flag is CYF{rsa_cracked}}

@@ -24,7 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from cyf.flag_miner import decode_ladder, find_flag  # noqa: E402
 
-FLAG = "CYF{test_flag_value}"
+FLAG = "FLAG{test_flag_value}"
 
 
 class TruePositives(unittest.TestCase):

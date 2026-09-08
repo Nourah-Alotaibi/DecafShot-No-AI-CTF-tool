@@ -37,29 +37,29 @@ class EngineSmokeTests(unittest.TestCase):
 
     def test_rot13_crypto(self):
         import codecs
-        enc = codecs.encode("CYF{c4esar_sh1ft_by_13}", "rot13")
+        enc = codecs.encode("FLAG{c4esar_sh1ft_by_13}", "rot13")
         ev = self._hunt("crypto", {"message.txt": enc})
-        self.assertEqual(ev.flag, "CYF{c4esar_sh1ft_by_13}")
+        self.assertEqual(ev.flag, "FLAG{c4esar_sh1ft_by_13}")
 
     def test_base64_gzip_crypto(self):
         import base64
-        blob = base64.b64encode(gzip.compress(b"CYF{gz1p_1ns1de_b4se64}")).decode()
+        blob = base64.b64encode(gzip.compress(b"FLAG{gz1p_1ns1de_b4se64}")).decode()
         ev = self._hunt("crypto", {"message.txt": blob})
-        self.assertEqual(ev.flag, "CYF{gz1p_1ns1de_b4se64}")
+        self.assertEqual(ev.flag, "FLAG{gz1p_1ns1de_b4se64}")
 
     def test_repeating_xor_crib_crypto(self):
         key = b"k3y"
-        raw = b"CYF{r3p3ating_x0r_kn0wn_pla1nt3xt}"
+        raw = b"FLAG{r3p3ating_x0r_kn0wn_pla1nt3xt}"
         ct = bytes(b ^ key[i % len(key)] for i, b in enumerate(raw))
         ev = self._hunt("crypto", {"message.txt": ct})
-        self.assertEqual(ev.flag, "CYF{r3p3ating_x0r_kn0wn_pla1nt3xt}")
+        self.assertEqual(ev.flag, "FLAG{r3p3ating_x0r_kn0wn_pla1nt3xt}")
 
     @unittest.skipUnless(shutil.which("binwalk"), "binwalk not installed")
     def test_binwalk_extracts_embedded_gzip(self):
-        payload = gzip.compress(b"CYF{binw4lk_found_the_bur1ed_arch1ve}")
+        payload = gzip.compress(b"FLAG{binw4lk_found_the_bur1ed_arch1ve}")
         data = b"\x00" * 512 + payload
         ev = self._hunt("forensics", {"dump.bin": data})
-        self.assertEqual(ev.flag, "CYF{binw4lk_found_the_bur1ed_arch1ve}")
+        self.assertEqual(ev.flag, "FLAG{binw4lk_found_the_bur1ed_arch1ve}")
 
     @unittest.skipUnless(shutil.which("tshark"), "tshark not installed")
     def test_pcap_analyze_finds_flag_in_tcp_stream(self):
@@ -74,7 +74,7 @@ class EngineSmokeTests(unittest.TestCase):
         except ImportError:
             self.skipTest("scapy not installed")
         import base64
-        flag_b64 = base64.b64encode(b"admin:CYF{tshark_stream_reassembly}").decode()
+        flag_b64 = base64.b64encode(b"admin:FLAG{tshark_stream_reassembly}").decode()
         c, s = ("10.0.0.1", 40000), ("10.0.0.2", 80)
         syn = IP(src=c[0], dst=s[0]) / TCP(sport=c[1], dport=s[1], flags="S", seq=1000)
         synack = IP(src=s[0], dst=c[0]) / TCP(sport=s[1], dport=c[1], flags="SA", seq=5000, ack=1001)
@@ -86,7 +86,7 @@ class EngineSmokeTests(unittest.TestCase):
             pcap_path = Path(d) / "test.pcap"
             wrpcap(str(pcap_path), [syn, synack, ack, data_pkt])
             ev, _ = hunt("forensics", "medium", str(pcap_path), verbose=False)
-        self.assertEqual(ev.flag, "CYF{tshark_stream_reassembly}")
+        self.assertEqual(ev.flag, "FLAG{tshark_stream_reassembly}")
 
     @unittest.skipUnless(shutil.which("zsteg"), "zsteg not installed")
     def test_zsteg_finds_lsb_payload_stegseek_cant_touch(self):
@@ -98,7 +98,7 @@ class EngineSmokeTests(unittest.TestCase):
         except ImportError:
             self.skipTest("PIL not installed")
         import random
-        flag = b"CYF{zsteg_lsb_test}\x00"
+        flag = b"FLAG{zsteg_lsb_test}\x00"
         bits = [(byte >> (7 - i)) & 1 for byte in flag for i in range(8)]
         rng = random.Random(3)
         w, h = 60, 60
@@ -113,7 +113,7 @@ class EngineSmokeTests(unittest.TestCase):
             png_path = Path(d) / "carrier.png"
             img.save(png_path)
             ev, _ = hunt("stego", "medium", str(png_path), verbose=False)
-        self.assertEqual(ev.flag, "CYF{zsteg_lsb_test}")
+        self.assertEqual(ev.flag, "FLAG{zsteg_lsb_test}")
 
     @unittest.skipUnless(shutil.which("tshark"), "tshark not installed")
     def test_recursive_extraction_pcap_to_gzip_object(self):
@@ -132,7 +132,7 @@ class EngineSmokeTests(unittest.TestCase):
         from cyf.evidence import Evidence
         from cyf.tools import PcapAnalyze, DecodeLadder
 
-        body = gzip.compress(b"CYF{pcap_http_object_export_chained}")
+        body = gzip.compress(b"FLAG{pcap_http_object_export_chained}")
         resp = (f"HTTP/1.1 200 OK\r\nContent-Type: application/gzip\r\n"
                 f"Content-Length: {len(body)}\r\n"
                 f"Content-Disposition: attachment; filename=secret.gz\r\n\r\n").encode() + body
@@ -156,7 +156,7 @@ class EngineSmokeTests(unittest.TestCase):
             self.assertTrue(any(f.name == "secret.gz" for f in ev.extra_files),
                              "pcap_analyze should have exported and ingested secret.gz")
             DecodeLadder().run(ev, 10)
-        self.assertEqual(ev.flag, "CYF{pcap_http_object_export_chained}")
+        self.assertEqual(ev.flag, "FLAG{pcap_http_object_export_chained}")
 
     @unittest.skipUnless(shutil.which("exiftool"), "exiftool not installed")
     def test_exif_comment_osint(self):
@@ -177,11 +177,11 @@ class EngineSmokeTests(unittest.TestCase):
                 "/9k="
             )
             img.write_bytes(minimal_jpeg)
-            subprocess.run(["exiftool", "-Comment=CYF{ex1f_c0mment_l3aks_the_flag}",
+            subprocess.run(["exiftool", "-Comment=FLAG{ex1f_c0mment_l3aks_the_flag}",
                              "-overwrite_original", str(img)],
                             capture_output=True, timeout=10)
             ev, _ = hunt("osint", "medium", str(img), verbose=False)
-            self.assertEqual(ev.flag, "CYF{ex1f_c0mment_l3aks_the_flag}")
+            self.assertEqual(ev.flag, "FLAG{ex1f_c0mment_l3aks_the_flag}")
 
     @unittest.skipUnless(shutil.which("zerapwn.py") and shutil.which("gcc"),
                           "zeratool or gcc not installed")
@@ -195,7 +195,7 @@ class EngineSmokeTests(unittest.TestCase):
         import subprocess
         with tempfile.TemporaryDirectory(prefix="cyf_test_") as d:
             flag_file = Path(d) / "flag.txt"
-            flag_file.write_text("CYF{r3t2win_pwn3d_by_zer4tool}\n")
+            flag_file.write_text("FLAG{r3t2win_pwn3d_by_zer4tool}\n")
             src = Path(d) / "ret2win.c"
             src.write_text(f'''
 #include <stdio.h>
@@ -216,7 +216,7 @@ int main() {{
                              "-no-pie", "-O0", "-o", str(binpath), str(src)],
                             capture_output=True, timeout=30, check=True)
             ev, _ = hunt("pwn", "hard", str(binpath), verbose=False)
-            self.assertEqual(ev.flag, "CYF{r3t2win_pwn3d_by_zer4tool}")
+            self.assertEqual(ev.flag, "FLAG{r3t2win_pwn3d_by_zer4tool}")
 
     def test_rsa_weak_regression(self):
         # The original hand-crafted test fixture this project shipped with;
@@ -225,7 +225,7 @@ int main() {{
         if not base.exists():
             self.skipTest("real_challenge fixture not present")
         ev, _ = hunt("crypto", "medium", str(base), verbose=False)
-        self.assertEqual(ev.flag, "CYF{f3rmat_f4ct0r1zation_15_fun}")
+        self.assertEqual(ev.flag, "FLAG{f3rmat_f4ct0r1zation_15_fun}")
 
     @unittest.skipUnless(shutil.which("jwt_tool.py") or shutil.which("jwt_tool"),
                           "jwt_tool not installed")
@@ -240,7 +240,7 @@ int main() {{
         from cyf import config as cyf_config
 
         secret = "secret"
-        flag = "CYF{jwt_test_weak_secret_forged}"
+        flag = "FLAG{jwt_test_weak_secret_forged}"
         token = pyjwt.encode({"user": "guest", "role": "user"}, secret, algorithm="HS256")
 
         from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -313,7 +313,7 @@ int main() {{
         from http.server import BaseHTTPRequestHandler, HTTPServer
         from urllib.parse import urlparse, parse_qs
 
-        flag = "CYF{sqlmap_test_dumped_flag}"
+        flag = "FLAG{sqlmap_test_dumped_flag}"
         with tempfile.TemporaryDirectory(prefix="cyf_test_") as d:
             db_path = str(Path(d) / "db.sqlite3")
             con = sqlite3.connect(db_path)
@@ -370,7 +370,7 @@ int main() {{
         from http.server import HTTPServer, SimpleHTTPRequestHandler
         from functools import partial
 
-        flag = "CYF{ffuf_test_found_flag}"
+        flag = "FLAG{ffuf_test_found_flag}"
         with tempfile.TemporaryDirectory(prefix="cyf_test_") as d:
             (Path(d) / "flag.txt").write_text(flag)
             handler = partial(SimpleHTTPRequestHandler, directory=d)
@@ -395,7 +395,7 @@ int main() {{
         # stdlib-only tool, no external binary — always runs.
         import socket, threading
 
-        flag = "CYF{net_probe_test_banner}"
+        flag = "FLAG{net_probe_test_banner}"
         listener = socket.socket()
         listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         listener.bind(("127.0.0.1", 0))
@@ -462,7 +462,7 @@ int main() {{
             carrier = Path(d) / "carrier.bin"
             carrier.write_bytes(b"\x00" * 512 + buf.getvalue())
             ev, log = hunt("crypto", "medium", str(d), verbose=False)
-        self.assertEqual(ev.flag, "CYF{f3rmat_f4ct0r1zation_15_fun}")
+        self.assertEqual(ev.flag, "FLAG{f3rmat_f4ct0r1zation_15_fun}")
         # confirm it's genuinely a *second* run, not a lucky first pass —
         # rsactftool must appear as having failed once before succeeding
         rsactftool_facts = [f for f in ev.facts if "rsactftool" in f.lower()

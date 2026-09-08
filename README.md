@@ -18,7 +18,7 @@ stars x recency, filtered for relevance. Feeds the tool list into part 3.
 ## 3_flag_hunter/
 The engine. Takes category + difficulty, then loops: score every tool by
 (base weight x evidence fit) -> run the top one -> update evidence -> re-score,
-until it finds CYF{...}. The re-scoring after each step is the adaptivity —
+until it finds FLAG{...}. The re-scoring after each step is the adaptivity —
 with zero learning. This loop is the research contribution.
     python run.py --path ./challenge.txt --category crypto --difficulty easy
 
@@ -26,7 +26,7 @@ with zero learning. This loop is the research contribution.
     challenge --> [1] classify category --> [3] engine ranks & runs tools
                   [2] supplies the tool list          |
                                                        v
-                                                    CYF{flag}
+                                                    FLAG{flag}
 
 ## Where your originality sits
 Multi-category + adaptive + fully rule/ML-based (no generative model), all at
