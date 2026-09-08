@@ -1,3 +1,5 @@
+![DecafShot](decaf.png)
+
 # DecafShot
 
 **Decaffeinated. De-AI'd CTF kit.**
