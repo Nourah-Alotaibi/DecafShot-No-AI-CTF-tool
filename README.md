@@ -2,6 +2,7 @@
 
 # DecafShot
 
+**Decaffeinated. De-AI'd CTF kit.**  
 **A decaffeinated shot at CTFs. No caffeine or generative AI needed.**
 
 Three parts that fit together. All deterministic — no generative model
