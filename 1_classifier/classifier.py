@@ -255,6 +255,17 @@ def _starter_dataset():
 
 
 SCRAPED_PATH = Path(__file__).with_name("scraped_dataset.json")
+SCRAPED_M0X_PATH = Path(__file__).with_name("scraped_dataset_m0x.json")
+
+
+def _load_pairs(path):
+    if not path.exists():
+        return []
+    try:
+        rows = json.loads(path.read_text())
+        return [(r["text"], r["category"]) for r in rows if r.get("text") and r.get("category")]
+    except Exception:
+        return []
 
 
 def _scraped_dataset():
@@ -262,13 +273,15 @@ def _scraped_dataset():
     scrape_ctf_writeups.py — see that file for the method. Returns [] if
     it hasn't been run, so train() always works with just the hand-written
     seed set as a fallback."""
-    if not SCRAPED_PATH.exists():
-        return []
-    try:
-        rows = json.loads(SCRAPED_PATH.read_text())
-        return [(r["text"], r["category"]) for r in rows if r.get("text") and r.get("category")]
-    except Exception:
-        return []
+    return _load_pairs(SCRAPED_PATH)
+
+
+def _scraped_m0x_dataset():
+    """Real labeled examples mined from the m0x-skills-ctfs skill's
+    playbook library by mine_m0x_playbooks.py — see that file for the
+    method and category-mapping notes. Returns [] if it hasn't been run
+    (that skill, and its data, are optional and not part of this repo)."""
+    return _load_pairs(SCRAPED_M0X_PATH)
 
 
 def train(save=True, use_scraped=True):
@@ -278,7 +291,7 @@ def train(save=True, use_scraped=True):
     import joblib
 
     hand_written = _starter_dataset()
-    scraped = _scraped_dataset() if use_scraped else []
+    scraped = (_scraped_dataset() + _scraped_m0x_dataset()) if use_scraped else []
     # dedupe on exact text match (a handful of repos can share a challenge)
     seen, data = set(), []
     for text, cat in hand_written + scraped:

@@ -13,7 +13,7 @@ Usage:
 """
 from collections import Counter
 
-from classifier import _starter_dataset, _scraped_dataset
+from classifier import _starter_dataset, _scraped_dataset, _scraped_m0x_dataset
 
 
 def _cv_accuracy(data, folds=5):
@@ -45,20 +45,34 @@ def _cv_accuracy(data, folds=5):
     return accs, f"{k}-fold"
 
 
-def main():
-    hand = _starter_dataset()
-    scraped = _scraped_dataset()
-    seen, combined = set(), []
-    for text, cat in hand + scraped:
+def _dedupe(pairs):
+    seen, out = set(), []
+    for text, cat in pairs:
         if text not in seen:
             seen.add(text)
-            combined.append((text, cat))
+            out.append((text, cat))
+    return out
 
-    print(f"hand-written: {len(hand)} examples, {dict(Counter(c for _, c in hand))}")
-    print(f"scraped:      {len(scraped)} examples, {dict(Counter(c for _, c in scraped))}")
-    print(f"combined:     {len(combined)} examples (deduped)\n")
 
-    for name, data in [("hand-written only", hand), ("hand-written + scraped", combined)]:
+def main():
+    hand = _starter_dataset()
+    github_scraped = _scraped_dataset()
+    m0x_scraped = _scraped_m0x_dataset()
+
+    hand_plus_github = _dedupe(hand + github_scraped)
+    everything = _dedupe(hand + github_scraped + m0x_scraped)
+
+    print(f"hand-written:        {len(hand)} examples, {dict(Counter(c for _, c in hand))}")
+    print(f"github-scraped:      {len(github_scraped)} examples, "
+          f"{dict(Counter(c for _, c in github_scraped))}")
+    print(f"m0x-mined:           {len(m0x_scraped)} examples, "
+          f"{dict(Counter(c for _, c in m0x_scraped))}")
+    print(f"hand + github:       {len(hand_plus_github)} (deduped)")
+    print(f"hand + github + m0x: {len(everything)} (deduped)\n")
+
+    for name, data in [("hand-written only", hand),
+                        ("hand + github-scraped", hand_plus_github),
+                        ("hand + github + m0x", everything)]:
         accs, note = _cv_accuracy(data)
         if accs is None:
             print(f"{name:24} — {note}")
