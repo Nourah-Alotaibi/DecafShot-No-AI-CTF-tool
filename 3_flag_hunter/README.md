@@ -18,7 +18,11 @@ on a generative model).
 
 Optional real tools (the adapters use them if present, skip cleanly if not):
 
-    sudo apt install file binutils binwalk exiftool   # strings is in binutils
+    sudo apt install file binutils binwalk exiftool tshark radare2  # strings is in binutils
+    gem install zsteg
+    pip install volatility3 sqlmap zeratool   # then: ./patches/apply_zeratool_fixes.sh
+    go install github.com/ffuf/ffuf/v2@latest
+    git clone https://github.com/RsaCtfTool/RsaCtfTool && pip install -r RsaCtfTool/requirements.txt
 
 ## Run
 
@@ -48,9 +52,9 @@ evidence it added — then the flag if found.
 - `cyf/evidence.py`    — the blackboard (facts, signals, visited tools)
 - `cyf/ranker.py`      — the deterministic action ranker (the "brain")
 - `cyf/tools.py`       — tool adapters, all real (file/strings/binwalk+extract/
-                          exif/RsaCtfTool/Zeratool/stegseek/volatility/sqlmap/
-                          ffuf/net_probe/radare2+objdump); each skips cleanly
-                          if its binary isn't installed
+                          exif/RsaCtfTool/Zeratool/stegseek/zsteg/volatility/
+                          sqlmap/ffuf/net_probe/radare2+objdump/tshark); each
+                          skips cleanly if its binary isn't installed
 - `cyf/flag_miner.py`  — regex + bounded decode ladder (base64/32/hex/rot13/
                           rot47/atbash/urldecode/morse/gzip+zlib/xor1/xor_crib)
 - `cyf/engine.py`      — the orchestration loop (the contribution)
@@ -59,13 +63,52 @@ evidence it added — then the flag if found.
 ## Current real coverage (measured, not claimed)
 
 `python batch.py ./challenges --difficulty medium` against the bundled test
-corpus: 9/9 solved, one real working adapter chain per category (crypto,
-forensics, hardware, osint, reverse, stego). web/pwn aren't in that corpus
-because they're network-target challenges, not files — validated separately
-against local test servers (see the session notes / commit history). This is
-"each wired capability provably works end to end," not a claim about solve
-rate on real competition difficulty — build `challenges/` out with harder,
-real challenges to get a number that means that.
+corpus: 13/13 solved (forensics x3, stego x2, crypto x4, hardware/osint/pwn/
+reverse x1 each). web isn't in that corpus because it's a network-target
+challenge, not a file — validated separately against a local test server
+(see commit history). This is "each wired capability provably works end to
+end," not a claim about solve rate on real competition difficulty — build
+`challenges/` out with harder, real challenges to get a number that means
+that (see "What this can't do yet" below for exactly where the ceiling is).
+
+## Multi-stage challenges: extraction chains, not just one flag regex sweep
+
+Real medium+ challenges are rarely one technique — a stego image hides a
+zip, the zip has an encrypted blob, decrypting it reveals a binary to
+reverse. Early on, an extracted/decoded file just had its raw bytes dumped
+into one undifferentiated text blob, which only helped if the *final*
+payload happened to already be plain-text. `_ingest_extracted()` in
+`tools.py` fixes this: anything a tool pulls out (binwalk extraction, a
+tshark HTTP object export, ...) gets classified exactly like `FileId` would
+— signals set, added to `ev.extra_files` — so every subsequent tool's
+`_all_files(ev)` sees it too. Verified end to end:
+`tests/test_engine_smoke.py::test_recursive_extraction_pcap_to_gzip_object`
+exercises a pcap → exported gzip object → decompressed → flag chain with
+no binwalk involved, isolating the actual code path.
+
+Known limitation: a tool that already ran (`ev.ran`) won't automatically
+retry just because a relevant file showed up *afterward* — that would need
+per-file re-entry tracking, not just per-tool. In practice this still
+covers the common case since extraction tools tend to rank early.
+
+## What this can't do yet (the honest ceiling)
+
+Wiring more tools raises the ceiling toward "medium," not "hard" — some of
+what defines hard-tier is structurally out of reach for a no-generative-
+model system, not a missing adapter:
+- **Custom crypto schemes** (a bespoke script implementing a novel
+  construction) need someone to read the math and derive the attack.
+  `RsaCtfTool`'s roster only covers known weaknesses in *standard* RSA.
+- **Heap exploitation** (tcache poisoning, house-of-X) needs a bespoke
+  primitive built from the binary's specific allocator behavior — even
+  angr-based AEG research tools still struggle here.
+- **Leak-then-second-stage pwn** (info-leak → compute base → build a
+  ROP chain) is a fundamentally different two-phase pipeline `Zeratool`'s
+  single-shot point-to-win doesn't attempt. `ropper`/`one_gadget` are
+  installed and unwired — the missing piece is the orchestration logic
+  connecting a leak to a chain-builder, not the tools themselves.
+- **Physical hardware** (real UART/JTAG wiring, RF capture) can't be
+  automated in software at all.
 
 Optional environment for the network-facing adapters (all skip cleanly if unset):
 

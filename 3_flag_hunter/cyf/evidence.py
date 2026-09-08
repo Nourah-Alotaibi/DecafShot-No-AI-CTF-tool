@@ -20,6 +20,14 @@ class Evidence:
     steps: int = 0                                 # how many tools were run
     solved_by: str | None = None                   # which tool produced the flag
 
+    # Files pulled OUT of the challenge by a tool (binwalk extraction, a
+    # tshark HTTP object export, a zsteg -e payload, ...) rather than given
+    # directly. Real medium+ challenges are often multi-stage (stego image
+    # -> embedded zip -> encrypted blob -> decrypt -> new ELF to reverse),
+    # so anything a tool extracts needs to become a first-class file every
+    # other tool can see too — see tools.py's _ingest_extracted().
+    extra_files: list = field(default_factory=list)
+
     def add_fact(self, text: str):
         self.facts.append(text)
 

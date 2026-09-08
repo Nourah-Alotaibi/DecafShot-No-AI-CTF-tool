@@ -41,6 +41,81 @@ def _files_in(challenge_path):
     return [f for f in p.rglob("*") if f.is_file()] if p.exists() else []
 
 
+def _all_files(ev: Evidence):
+    """Every file in scope: the original challenge files PLUS anything a
+    tool has extracted so far (ev.extra_files) — see _ingest_extracted().
+    Every Tool that gathers files to work on should use this, not
+    _files_in(ev.challenge_path) directly, or it'll silently miss whatever
+    got pulled out of a nested archive/capture/stego payload."""
+    seen, out = set(), []
+    for f in _files_in(ev.challenge_path) + ev.extra_files:
+        rp = f.resolve()
+        if rp not in seen:
+            seen.add(rp)
+            out.append(f)
+    return out
+
+
+def _classify_file(ev: Evidence, f: Path, timeout: int):
+    """The signal-setting + text-ingestion logic every file needs, whether
+    it came with the challenge (FileId) or was pulled out of one later
+    (_ingest_extracted). Kept as one function so both paths stay in sync."""
+    have_file = shutil.which("file")
+    out = _sh(["file", "-b", str(f)], timeout).lower() if have_file else ""
+    ev.add_fact(f"file: {f.name}: {out.strip()[:80]}" if out else f"file: {f.name}")
+    if "elf" in out or "executable" in out or "pe32" in out:
+        ev.add_signal("binary", "executable")
+    if "pcap" in out or "capture file" in out:
+        ev.add_signal("pcap")
+    if "image" in out or "png" in out or "jpeg" in out:
+        ev.add_signal("image")
+    # load text content so the decode ladder can work immediately
+    if (not have_file) or "ascii" in out or "text" in out or "json" in out:
+        ev.add_signal("text")
+        try:
+            ev.add_text(f.read_text(errors="replace"))
+        except Exception:
+            pass
+    elif "elf" not in out and "executable" not in out and "pe32" not in out:
+        # `file` called it binary/"data" (not a known executable/image
+        # format) — could just as easily be raw ciphertext, a short
+        # ROT/XOR-scrambled blob, etc. UTF-8 + errors="replace" would
+        # destroy that: any byte that isn't valid UTF-8 becomes a lossy
+        # U+FFFD, and short binary-ish payloads are ALL such bytes.
+        # latin-1 is a lossless 1-byte<->1-char mapping, so decode it that
+        # way instead — small files only, cheap.
+        try:
+            if f.stat().st_size <= 65536:
+                ev.add_text(f.read_bytes().decode("latin-1"))
+        except Exception:
+            pass
+
+
+def _ingest_extracted(ev: Evidence, path: Path, timeout: int = 10):
+    """Call this whenever a tool PULLS a new file out of the challenge
+    (binwalk extraction, a tshark HTTP object export, a zsteg -e payload,
+    ...). Classifies it exactly like FileId would and adds it to
+    ev.extra_files so every subsequent tool's _all_files(ev) sees it too —
+    this is what lets a multi-stage challenge (stego -> zip -> ELF to
+    reverse) actually chain instead of dead-ending after the first extract.
+
+    Known limitation: a tool that already ran and set itself as done in
+    ev.ran won't automatically retry just because a new relevant file
+    showed up afterward (e.g. RsaCtfTool ran and found no key, then a
+    LATER extraction reveals one). That would need per-file re-entry
+    tracking, not just per-tool — not done here. In practice this still
+    covers the common case, since extraction tools (binwalk, etc.) tend to
+    rank early and run before the tools that would consume their output.
+    """
+    if not path.is_file():
+        return
+    rp = path.resolve()
+    if any(f.resolve() == rp for f in ev.extra_files):
+        return  # already ingested
+    ev.extra_files.append(path)
+    _classify_file(ev, path, timeout)
+
+
 class Tool:
     name = "base"
     def applicable(self, ev: Evidence) -> float:  # 0 = skip, 1 = perfect fit
@@ -58,37 +133,8 @@ class FileId(Tool):
         targets = _files_in(ev.challenge_path)   # every file, whether path is file or dir
         if not targets:
             ev.add_fact("no files found at challenge path"); return
-        have_file = shutil.which("file")
         for f in targets:
-            out = _sh(["file", "-b", str(f)], timeout).lower() if have_file else ""
-            ev.add_fact(f"file: {f.name}: {out.strip()[:80]}" if out
-                        else f"file: {f.name}")
-            if "elf" in out or "executable" in out or "pe32" in out:
-                ev.add_signal("binary", "executable")
-            if "pcap" in out or "capture file" in out:
-                ev.add_signal("pcap")
-            if "image" in out or "png" in out or "jpeg" in out:
-                ev.add_signal("image")
-            # load text content so the decode ladder can work immediately
-            if (not have_file) or "ascii" in out or "text" in out or "json" in out:
-                ev.add_signal("text")
-                try:
-                    ev.add_text(f.read_text(errors="replace"))
-                except Exception:
-                    pass
-            elif "elf" not in out and "executable" not in out and "pe32" not in out:
-                # `file` called it binary/"data" (not a known executable/image
-                # format) — could just as easily be raw ciphertext, a short
-                # ROT/XOR-scrambled blob, etc. UTF-8 + errors="replace" would
-                # destroy that: any byte that isn't valid UTF-8 becomes a
-                # lossy U+FFFD, and short binary-ish payloads are ALL such
-                # bytes. latin-1 is a lossless 1-byte<->1-char mapping, so
-                # decode it that way instead — small files only, cheap.
-                try:
-                    if f.stat().st_size <= 65536:
-                        ev.add_text(f.read_bytes().decode("latin-1"))
-                except Exception:
-                    pass
+            _classify_file(ev, f, timeout)
 
 
 class StringsScan(Tool):
@@ -99,7 +145,7 @@ class StringsScan(Tool):
     def run(self, ev, timeout):
         have = shutil.which("strings")
         total = 0
-        for f in _files_in(ev.challenge_path):
+        for f in _all_files(ev):
             if have:
                 out = _sh(["strings", "-n", "6", str(f)], timeout)
             else:
@@ -149,29 +195,28 @@ class BinwalkScan(Tool):
         extracted_count = 0
         if found_embedded:
             # A plain scan only REPORTS embedded data — it never reads it.
-            # -e/-M actually pulls it out (recursively), which is the only
-            # way something like "a gzip blob appended after a PNG" ever
-            # gets its content into evidence for the flag miner to see.
+            # -e/-M actually pulls it out (recursively). Extracted files are
+            # deliberately NOT cleaned up here (no rmtree) — _ingest_extracted
+            # below stores Path references into ev.extra_files, not copies,
+            # so every subsequent tool needs them to still exist on disk for
+            # the rest of this run. Real multi-stage challenges are exactly
+            # why this matters: an extracted file might itself be an ELF
+            # that reverse_analyze should see, or a .pem that rsactftool
+            # should try — not just more raw bytes for the flag regex.
             import tempfile
             tmpdir = tempfile.mkdtemp(prefix="cyf_binwalk_")
-            try:
-                for target in _files_in(ev.challenge_path):
-                    ex_out = _sh(["binwalk", "-e", "-M", "-C", tmpdir, str(target)],
-                                 timeout)
-                    ev.add_text(ex_out)
-                for extracted in Path(tmpdir).rglob("*"):
-                    if not extracted.is_file() or extracted.stat().st_size > 1_000_000:
-                        continue
-                    extracted_count += 1
-                    try:
-                        ev.add_text(extracted.read_bytes().decode("latin-1"))
-                    except Exception:
-                        pass
-            finally:
-                shutil.rmtree(tmpdir, ignore_errors=True)
+            for target in _files_in(ev.challenge_path):
+                ex_out = _sh(["binwalk", "-e", "-M", "-C", tmpdir, str(target)], timeout)
+                ev.add_text(ex_out)
+            for extracted in Path(tmpdir).rglob("*"):
+                if not extracted.is_file() or extracted.stat().st_size > 1_000_000:
+                    continue
+                extracted_count += 1
+                _ingest_extracted(ev, extracted, timeout)
 
         ev.add_fact(f"binwalk: scanned for embedded data"
-                    + (f", extracted {extracted_count} file(s)" if extracted_count else ""))
+                    + (f", extracted {extracted_count} file(s) (now in scope for "
+                       f"other tools)" if extracted_count else ""))
 
 
 # --- REAL: static reverse-engineering pass (radare2 + objdump) ------------
@@ -192,9 +237,9 @@ class ReverseAnalyze(Tool):
         if "reverse_analyze" in ev.ran: return 0.0
         return 0.85 if ev.has("binary", "executable") else 0.1
     def run(self, ev, timeout):
-        bins = [f for f in _files_in(ev.challenge_path)
+        bins = [f for f in _all_files(ev)
                 if "elf" in _sh(["file", "-b", str(f)], 5).lower()] \
-               if shutil.which("file") else _files_in(ev.challenge_path)
+               if shutil.which("file") else _all_files(ev)
         if not bins:
             ev.add_fact("reverse_analyze: no ELF binary found"); return
         target = bins[0]
@@ -256,7 +301,7 @@ class RsaCtfTool(Tool):
         if "rsactftool" in ev.ran: return 0.0
         blob = " ".join(ev.text_blobs).lower()
         keyfile = any(f.suffix.lower() in (".pem", ".pub", ".key")
-                      or "public" in f.name.lower() for f in _files_in(ev.challenge_path))
+                      or "public" in f.name.lower() for f in _all_files(ev))
         rsa_sig = ("public key" in blob or re.search(r"\bn\s*=|\be\s*=|-----begin", blob))
         return 0.9 if (ev.category == "crypto" or keyfile or rsa_sig) else 0.05
     def run(self, ev, timeout):
@@ -264,7 +309,7 @@ class RsaCtfTool(Tool):
         if not binname:
             ev.add_fact("RsaCtfTool not installed; skipping "
                         "(git clone RsaCtfTool/RsaCtfTool)"); return
-        files = _files_in(ev.challenge_path)
+        files = _all_files(ev)
         keys = [f for f in files if f.suffix.lower() in (".pem", ".pub", ".key")
                 or "public" in f.name.lower()]
         if not keys:
@@ -327,9 +372,9 @@ class Zeratool(Tool):
         binname = _resolve("zeratool")
         if not binname:
             ev.add_fact("Zeratool not installed; skipping (pip install zeratool)"); return
-        bins = [f for f in _files_in(ev.challenge_path)
+        bins = [f for f in _all_files(ev)
                 if "elf" in _sh(["file", "-b", str(f)], 5).lower()] \
-               if shutil.which("file") else _files_in(ev.challenge_path)
+               if shutil.which("file") else _all_files(ev)
         if not bins:
             ev.add_fact("Zeratool: no binary to exploit"); return
         cmd = [binname, str(bins[0])]
@@ -354,7 +399,7 @@ class Stegseek(Tool):
         if not binname:
             ev.add_fact("stegseek not installed; skipping "
                         "(apt install stegseek)"); return
-        imgs = [f for f in _files_in(ev.challenge_path)
+        imgs = [f for f in _all_files(ev)
                 if f.suffix.lower() in (".jpg", ".jpeg", ".png", ".bmp", ".wav")]
         if not imgs:
             ev.add_fact("stegseek: no image/audio carrier found"); return
@@ -392,6 +437,41 @@ class Stegseek(Tool):
                     else f"stegseek: no passphrase from {wl}")
 
 
+# --- REAL: zsteg (LSB / bit-plane stego, no passphrase needed) ------------
+class ZstegScan(Tool):
+    """Stegseek only cracks steghide-embedded data behind a wordlist-
+    guessable passphrase. A large, common class of stego challenges has no
+    passphrase at all — the payload is just hidden directly in the low
+    bits of pixel channels (classic LSB) — which stegseek can't touch and
+    nothing else in the registry covers. zsteg -a tries the standard set
+    of bit-plane/channel/order combinations for PNG/BMP.
+    """
+    name = "zsteg_scan"
+    def applicable(self, ev):
+        if "zsteg_scan" in ev.ran: return 0.0
+        return 0.85 if ev.has("image") else (0.3 if ev.category == "stego" else 0.05)
+    def run(self, ev, timeout):
+        binname = _resolve("zsteg")
+        if not binname:
+            ev.add_fact("zsteg not installed; skipping (gem install zsteg)"); return
+        # zsteg is PNG/BMP-native; it can choke on other formats, so only
+        # hand it those rather than every image in scope.
+        imgs = [f for f in _all_files(ev) if f.suffix.lower() in (".png", ".bmp")]
+        if not imgs:
+            ev.add_fact("zsteg: no PNG/BMP carrier found"); return
+        out = _sh([binname, "-a", str(imgs[0])], timeout)
+        ev.add_text(out)
+        f = find_flag(out)
+        if f:
+            ev.flag = f
+            ev.add_fact(f"zsteg found the flag directly in {imgs[0].name} -> {f}")
+            return
+        # No direct hit — but zsteg's output lines often contain a payload
+        # (base64, hex, raw text) that decode_ladder should get a crack at,
+        # which ev.add_text(out) above already queued up for exactly that.
+        ev.add_fact(f"zsteg: scanned {imgs[0].name} with -a (all methods), no direct flag")
+
+
 # --- REAL: Volatility 3 (memory forensics) --------------------------------
 class Volatility(Tool):
     name = "volatility"
@@ -399,14 +479,14 @@ class Volatility(Tool):
         if "volatility" in ev.ran: return 0.0
         blob = " ".join(ev.facts).lower()
         mem = any(f.suffix.lower() in (".raw", ".mem", ".vmem", ".dmp", ".lime")
-                  for f in _files_in(ev.challenge_path)) or "memory" in blob
+                  for f in _all_files(ev)) or "memory" in blob
         return 0.9 if (ev.category == "forensics" and mem) else (0.3 if mem else 0.05)
     def run(self, ev, timeout):
         binname = _resolve("volatility")
         if not binname:
             ev.add_fact("volatility not installed; skipping "
                         "(pip install volatility3)"); return
-        imgs = [f for f in _files_in(ev.challenge_path)
+        imgs = [f for f in _all_files(ev)
                 if f.suffix.lower() in (".raw", ".mem", ".vmem", ".dmp", ".lime")]
         if not imgs:
             ev.add_fact("volatility: no memory image found"); return
@@ -419,6 +499,67 @@ class Volatility(Tool):
                 ev.add_fact(f"volatility {plugin} -> {f}"); return
         ev.add_fact(f"volatility ran {len(config.VOL_PLUGINS)} plugins on "
                     f"{imgs[0].name} (no direct flag)")
+
+
+# --- REAL: tshark (pcap stream reconstruction) -----------------------------
+class PcapAnalyze(Tool):
+    """FileId already sets the 'pcap' signal for a capture file — nothing
+    consumed it until this. Reassembles every TCP/UDP stream to text (the
+    actual content of the conversation, not just packet metadata) and
+    exports any HTTP file transfers, feeding both into evidence: the
+    reassembled streams go straight into the flag miner's text pool, and
+    exported files get _ingest_extracted'd exactly like a binwalk find —
+    so a pcap carrying, say, a file transfer that's itself a stego image
+    or an encrypted blob chains into whatever tool handles that next.
+    """
+    name = "pcap_analyze"
+    def applicable(self, ev):
+        if "pcap_analyze" in ev.ran: return 0.0
+        return 0.9 if ev.has("pcap") else 0.05
+    def run(self, ev, timeout):
+        binname = _resolve("tshark")
+        if not binname:
+            ev.add_fact("tshark not installed; skipping (apt install tshark)"); return
+        caps = [f for f in _all_files(ev)
+                if f.suffix.lower() in (".pcap", ".pcapng", ".cap")] or \
+               [f for f in _all_files(ev) if ev.has("pcap")]
+        if not caps:
+            ev.add_fact("pcap_analyze: no capture file found"); return
+        cap = caps[0]
+
+        streams_seen = 0
+        for proto in ("tcp", "udp"):
+            idx_out = _sh([binname, "-r", str(cap), "-T", "fields",
+                            "-e", f"{proto}.stream"], min(timeout, 15))
+            indices = sorted({int(x) for x in idx_out.split() if x.isdigit()})
+            for idx in indices[: config.PCAP_MAX_STREAMS]:
+                stream_out = _sh([binname, "-r", str(cap), "-q", "-z",
+                                   f"follow,{proto},ascii,{idx}"], min(timeout, 10))
+                ev.add_text(stream_out)
+                streams_seen += 1
+                f = find_flag(stream_out)
+                if f:
+                    ev.flag = f
+                    ev.add_fact(f"pcap_analyze: flag in {proto} stream {idx} of "
+                                f"{cap.name} -> {f}")
+                    return
+
+        # HTTP file transfers: exported objects become first-class files —
+        # this is the recursion point (see _ingest_extracted's docstring).
+        extracted_count = 0
+        import tempfile
+        tmpdir = Path(tempfile.mkdtemp(prefix="cyf_pcap_"))
+        _sh([binname, "-r", str(cap), "--export-objects", f"http,{tmpdir}"],
+            min(timeout, 20))
+        for obj in tmpdir.rglob("*"):
+            if obj.is_file() and obj.stat().st_size <= 5_000_000:
+                extracted_count += 1
+                _ingest_extracted(ev, obj, timeout=10)
+
+        ev.add_fact(f"pcap_analyze: followed {streams_seen} tcp/udp stream(s)"
+                    + (f", exported {extracted_count} http object(s) (now in "
+                       f"scope for other tools)" if extracted_count else "")
+                    + f" from {cap.name}, no direct flag")
 
 
 # --- REAL: sqlmap (SQLi discovery + exploitation) -------------------------
@@ -540,4 +681,5 @@ class NetProbe(Tool):
 
 REGISTRY = [FileId(), StringsScan(), DecodeLadder(), BinwalkScan(),
             ExifScan(), RsaCtfTool(), Zeratool(), Stegseek(), Volatility(),
-            WebSqlmap(), WebFfuf(), NetProbe(), ReverseAnalyze()]
+            WebSqlmap(), WebFfuf(), NetProbe(), ReverseAnalyze(),
+            ZstegScan(), PcapAnalyze()]

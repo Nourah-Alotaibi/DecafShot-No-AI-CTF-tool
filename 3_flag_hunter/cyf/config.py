@@ -34,6 +34,8 @@ BASE_WEIGHTS = {
     "web_ffuf":      {"web": 0.6, "*": 0.05},
     "net_probe":     {"web": 0.5, "pwn": 0.6, "*": 0.05},
     "reverse_analyze": {"reverse": 0.85, "pwn": 0.3, "*": 0.05},
+    "zsteg_scan":    {"stego": 0.85, "*": 0.05},
+    "pcap_analyze":  {"forensics": 0.9, "*": 0.05},
 }
 
 # --- external tool settings ---------------------------------------------
@@ -47,7 +49,13 @@ TOOL_BIN = {
     "sqlmap":     ["sqlmap"],
     "ffuf":       ["ffuf"],
     "radare2":    ["radare2", "r2"],
+    "zsteg":      ["zsteg"],
+    "tshark":     ["tshark"],
 }
+
+# How many TCP/UDP streams pcap_analyze will follow — capped so a huge
+# capture can't turn one tool call into a multi-hour run.
+PCAP_MAX_STREAMS = 40
 
 # Stegseek needs a wordlist; rockyou is the CTF default. The Kali package
 # path (/usr/share/wordlists/rockyou.txt) is tried first for portability;
