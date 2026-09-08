@@ -304,6 +304,139 @@ int main() {{
         self.assertFalse(any("found on 0 site" in f for f in ev.facts),
                           f"expected at least one real hit: {ev.facts}")
 
+    @unittest.skipUnless(shutil.which("sqlmap"), "sqlmap not installed")
+    def test_web_sqlmap_dumps_flag_from_live_sqli(self):
+        # Real vulnerable target: raw string interpolation into a SQL
+        # query, the classic CTF-style SQLi. sqlite3 is stdlib so this
+        # needs nothing beyond sqlmap itself.
+        import sqlite3, threading
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+        from urllib.parse import urlparse, parse_qs
+
+        flag = "CYF{sqlmap_test_dumped_flag}"
+        with tempfile.TemporaryDirectory(prefix="cyf_test_") as d:
+            db_path = str(Path(d) / "db.sqlite3")
+            con = sqlite3.connect(db_path)
+            con.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, flag TEXT)")
+            con.execute("INSERT INTO users (username, flag) VALUES ('admin', ?)", (flag,))
+            con.commit(); con.close()
+
+            class Handler(BaseHTTPRequestHandler):
+                def do_GET(self):
+                    qs = parse_qs(urlparse(self.path).query)
+                    uid = qs.get("id", ["1"])[0]
+                    con = sqlite3.connect(db_path)
+                    cur = con.cursor()
+                    try:
+                        cur.execute(f"SELECT username, flag FROM users WHERE id = {uid}")
+                        rows = cur.fetchall()
+                        body = json.dumps({"rows": rows}).encode()
+                        self.send_response(200)
+                    except Exception as e:
+                        body = str(e).encode()
+                        self.send_response(500)
+                    con.close()
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(body)
+                def log_message(self, *a):
+                    pass
+
+            import json
+            server = HTTPServer(("127.0.0.1", 0), Handler)
+            port = server.server_address[1]
+            threading.Thread(target=server.serve_forever, daemon=True).start()
+            try:
+                from cyf import config as cyf_config
+                old_url = cyf_config.WEB_URL
+                cyf_config.WEB_URL = f"http://127.0.0.1:{port}/user?id=1"
+                from cyf.evidence import Evidence
+                from cyf.tools import WebSqlmap
+                ev = Evidence(category="web", challenge_path=".")
+                WebSqlmap().run(ev, 60)
+            finally:
+                cyf_config.WEB_URL = old_url
+                server.shutdown()
+                server.server_close()
+        self.assertEqual(ev.flag, flag)
+
+    @unittest.skipUnless(shutil.which("ffuf"), "ffuf not installed")
+    def test_web_ffuf_finds_exposed_file(self):
+        # No wordlist needed on this box (config.FFUF_WORDLIST absent) —
+        # exercises the curl-fallback probe path against a real static
+        # file server, same as validated ad hoc earlier this session, now
+        # a permanent regression test.
+        import threading
+        from http.server import HTTPServer, SimpleHTTPRequestHandler
+        from functools import partial
+
+        flag = "CYF{ffuf_test_found_flag}"
+        with tempfile.TemporaryDirectory(prefix="cyf_test_") as d:
+            (Path(d) / "flag.txt").write_text(flag)
+            handler = partial(SimpleHTTPRequestHandler, directory=d)
+            server = HTTPServer(("127.0.0.1", 0), handler)
+            port = server.server_address[1]
+            threading.Thread(target=server.serve_forever, daemon=True).start()
+            try:
+                from cyf import config as cyf_config
+                old_url = cyf_config.WEB_URL
+                cyf_config.WEB_URL = f"http://127.0.0.1:{port}"
+                from cyf.evidence import Evidence
+                from cyf.tools import WebFfuf
+                ev = Evidence(category="web", challenge_path=".")
+                WebFfuf().run(ev, 30)
+            finally:
+                cyf_config.WEB_URL = old_url
+                server.shutdown()
+                server.server_close()
+        self.assertEqual(ev.flag, flag)
+
+    def test_net_probe_reads_banner_from_live_socket(self):
+        # stdlib-only tool, no external binary — always runs.
+        import socket, threading
+
+        flag = "CYF{net_probe_test_banner}"
+        listener = socket.socket()
+        listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        listener.bind(("127.0.0.1", 0))
+        listener.listen(1)
+        port = listener.getsockname()[1]
+
+        def serve():
+            conn, _ = listener.accept()
+            conn.sendall(f"welcome\nhere's your banner: {flag}\n".encode())
+            conn.close()
+
+        threading.Thread(target=serve, daemon=True).start()
+        try:
+            from cyf import config as cyf_config
+            old_host, old_port = cyf_config.PWN_HOST, cyf_config.PWN_PORT
+            cyf_config.PWN_HOST, cyf_config.PWN_PORT = "127.0.0.1", port
+            from cyf.evidence import Evidence
+            from cyf.tools import NetProbe
+            ev = Evidence(category="pwn", challenge_path=".")
+            NetProbe().run(ev, 10)
+        finally:
+            cyf_config.PWN_HOST, cyf_config.PWN_PORT = old_host, old_port
+            listener.close()
+        self.assertEqual(ev.flag, flag)
+
+    @unittest.skipUnless(shutil.which("nuclei"), "nuclei not installed")
+    def test_nuclei_scan_skips_cleanly_without_target(self):
+        # A full positive test would need a live nuclei-detectable
+        # misconfiguration AND enough time for a real scan — measured at
+        # ~25-30s+ even scoped (see NucleiScan's own docstring), too slow
+        # for a routine regression run. This locks in what IS fast and
+        # real: correct graceful-skip behavior when no target is set,
+        # so a broken config.WEB_URL check can't silently start scanning
+        # something unintended.
+        from cyf.evidence import Evidence
+        from cyf.tools import NucleiScan
+        ev = Evidence(category="web", challenge_path=".")
+        NucleiScan().run(ev, 5)
+        self.assertIsNone(ev.flag)
+        self.assertTrue(any("no target set" in f for f in ev.facts), ev.facts)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -575,8 +575,15 @@ class WebSqlmap(Tool):
         if not config.WEB_URL:
             ev.add_fact("web_sqlmap: no target set (export CYF_URL=http://host/path?id=1)")
             return
+        # --flush-session: sqlmap caches results keyed by HOSTNAME ONLY (not
+        # port or path) under ~/.local/share/sqlmap/output/<host>/ — found
+        # by testing, not inspection: a second run against a different
+        # port/challenge on the same host (very plausible in CTF contexts —
+        # e.g. multiple challenges all on 127.0.0.1 or the same comp IP)
+        # silently returned a STALE result from an unrelated earlier target
+        # instead of querying the live one.
         cmd = [binname, "-u", config.WEB_URL, "--batch", "--level", "1",
-               "--risk", "1", "--dump", "--answers", "quit=N"]
+               "--risk", "1", "--dump", "--answers", "quit=N", "--flush-session"]
         out = _sh(cmd, timeout)
         ev.add_text(out)
         f = find_flag(out)
