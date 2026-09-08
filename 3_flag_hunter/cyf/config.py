@@ -36,6 +36,9 @@ BASE_WEIGHTS = {
     "reverse_analyze": {"reverse": 0.85, "pwn": 0.3, "*": 0.05},
     "zsteg_scan":    {"stego": 0.85, "*": 0.05},
     "pcap_analyze":  {"forensics": 0.9, "*": 0.05},
+    "jwt_attack":    {"web": 0.75, "*": 0.05},
+    "nuclei_scan":   {"web": 0.55, "*": 0.05},
+    "sherlock_search": {"osint": 0.7, "*": 0.05},
 }
 
 # --- external tool settings ---------------------------------------------
@@ -51,11 +54,47 @@ TOOL_BIN = {
     "radare2":    ["radare2", "r2"],
     "zsteg":      ["zsteg"],
     "tshark":     ["tshark"],
+    "jwt_tool":   ["jwt_tool.py", "jwt_tool"],
+    "nuclei":     ["nuclei"],
+    "sherlock":   ["sherlock"],
 }
 
 # How many TCP/UDP streams pcap_analyze will follow — capped so a huge
 # capture can't turn one tool call into a multi-hour run.
 PCAP_MAX_STREAMS = 40
+
+# jwt_tool ships a small curated wordlist of real-world weak JWT secrets
+# (jwt-common.txt) alongside its own repo — not on PATH by convention, so
+# look in the couple of places a `git clone` or manual copy would leave it.
+JWT_WORDLIST = next(
+    (p for p in (os.path.expanduser("~/.local/share/jwt_tool/jwt-common.txt"),
+                  os.path.expanduser("~/jwt_tool/jwt-common.txt"),
+                  "/opt/jwt_tool/jwt-common.txt")
+     if os.path.exists(p)),
+    os.path.expanduser("~/.local/share/jwt_tool/jwt-common.txt"),
+)
+
+# Common claim/value pairs a CTF JWT challenge checks for the "become
+# admin" condition — tried in order once the signing secret is cracked.
+# Deterministic and printable, same spirit as every other weight here.
+JWT_ADMIN_CLAIMS = [("role", "admin"), ("admin", "true"), ("isAdmin", "true"),
+                     ("user", "admin"), ("username", "admin"), ("role", "administrator")]
+
+# OSINT username target for sherlock — same pattern as CYF_URL/CYF_HOST:
+#   CYF_USERNAME=someuser python run.py --category osint ...
+OSINT_USERNAME = os.environ.get("CYF_USERNAME") or None
+
+# sherlock's DEFAULT sweep checks 400+ sites and, measured here, simply
+# doesn't fit any tool timeout this engine uses — many sites are slow or
+# rate-limit datacenter IPs, and per-site --timeout doesn't bound the
+# total wall-clock well when that many are borderline-slow rather than
+# failing fast (a 60s run against ~6 scoped sites finished in ~3s; an
+# unscoped run was killed at 60s with zero output). This curated list
+# trades sherlock's real strength (breadth) for actually finishing within
+# budget — a real, disclosed limitation, not a hidden one.
+SHERLOCK_SITES = ["GitHub", "GitLab", "Reddit", "Docker Hub", "Keybase",
+                   "PyPi", "Twitter", "Instagram", "YouTube", "Medium",
+                   "Pastebin", "HackerNews", "Telegram"]
 
 # Stegseek needs a wordlist; rockyou is the CTF default. The Kali package
 # path (/usr/share/wordlists/rockyou.txt) is tried first for portability;

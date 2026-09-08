@@ -227,6 +227,83 @@ int main() {{
         ev, _ = hunt("crypto", "medium", str(base), verbose=False)
         self.assertEqual(ev.flag, "CYF{f3rmat_f4ct0r1zation_15_fun}")
 
+    @unittest.skipUnless(shutil.which("jwt_tool.py") or shutil.which("jwt_tool"),
+                          "jwt_tool not installed")
+    def test_jwt_attack_cracks_weak_secret_and_forges_admin(self):
+        # Real crack-then-forge chain against a live Flask app with a
+        # weak HS256 secret ("secret" — on jwt_tool's own wordlist).
+        try:
+            import jwt as pyjwt
+        except ImportError:
+            self.skipTest("pyjwt not installed")
+        import os as _os
+        from cyf import config as cyf_config
+
+        secret = "secret"
+        flag = "CYF{jwt_test_weak_secret_forged}"
+        token = pyjwt.encode({"user": "guest", "role": "user"}, secret, algorithm="HS256")
+
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+        import threading, json as _json
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                auth = self.headers.get("Authorization", "")
+                tok = auth.replace("Bearer ", "")
+                try:
+                    claims = pyjwt.decode(tok, secret, algorithms=["HS256"])
+                except Exception:
+                    self.send_response(401); self.end_headers(); return
+                if claims.get("role") == "admin":
+                    body = _json.dumps({"flag": flag}).encode()
+                    self.send_response(200)
+                else:
+                    body = b'{"error":"not admin"}'
+                    self.send_response(403)
+                self.end_headers()
+                self.wfile.write(body)
+            def log_message(self, *a):
+                pass
+
+        server = HTTPServer(("127.0.0.1", 0), Handler)
+        port = server.server_address[1]
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            old_url = cyf_config.WEB_URL
+            cyf_config.WEB_URL = f"http://127.0.0.1:{port}/admin"
+            from cyf.evidence import Evidence
+            from cyf.tools import JwtAttack
+            ev = Evidence(category="web", challenge_path=".")
+            ev.add_text(f"Set-Cookie: session={token}; HttpOnly")
+            JwtAttack().run(ev, 30)
+        finally:
+            cyf_config.WEB_URL = old_url
+            server.shutdown()
+            server.server_close()
+        self.assertEqual(ev.flag, flag)
+
+    @unittest.skipUnless(shutil.which("sherlock"), "sherlock not installed")
+    def test_sherlock_finds_known_real_account(self):
+        # Real network call to real sites — checks a well-known, stable
+        # account (Linus Torvalds' GitHub) rather than asserting exact
+        # site-by-site results, which would be fragile to those services
+        # changing over time. Scoped site list per config.SHERLOCK_SITES
+        # (measured: unscoped sherlock sweeps don't fit any timeout this
+        # engine uses — see the comment on that config value).
+        from cyf import config as cyf_config
+        from cyf.evidence import Evidence
+        from cyf.tools import SherlockSearch
+        old = cyf_config.OSINT_USERNAME
+        try:
+            cyf_config.OSINT_USERNAME = "torvalds"
+            ev = Evidence(category="osint", challenge_path=".")
+            SherlockSearch().run(ev, 25)
+        finally:
+            cyf_config.OSINT_USERNAME = old
+        self.assertTrue(any("found on" in f and "torvalds" in f for f in ev.facts))
+        self.assertFalse(any("found on 0 site" in f for f in ev.facts),
+                          f"expected at least one real hit: {ev.facts}")
+
 
 if __name__ == "__main__":
     unittest.main()

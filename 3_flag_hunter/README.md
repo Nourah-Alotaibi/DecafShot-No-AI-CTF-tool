@@ -23,6 +23,16 @@ Optional real tools (the adapters use them if present, skip cleanly if not):
     pip install volatility3 sqlmap zeratool   # then: ./patches/apply_zeratool_fixes.sh
     go install github.com/ffuf/ffuf/v2@latest
     git clone https://github.com/RsaCtfTool/RsaCtfTool && pip install -r RsaCtfTool/requirements.txt
+    pip install sherlock-project pyjwt
+    git clone https://github.com/ticarpi/jwt_tool && pip install -r jwt_tool/requirements.txt
+    mkdir -p ~/.local/bin ~/.local/share/jwt_tool
+    cp jwt_tool/jwt_tool.py ~/.local/bin/ && chmod +x ~/.local/bin/jwt_tool.py
+    cp jwt_tool/*.txt ~/.local/share/jwt_tool/
+    # nuclei: this box's Go (1.18) is too old to build it from source —
+    # grab a release binary instead (see releases page for the current tag)
+    curl -sL "https://github.com/projectdiscovery/nuclei/releases/latest/download/nuclei_$(curl -s https://api.github.com/repos/projectdiscovery/nuclei/releases/latest | grep -oP '"tag_name": "v\K[^"]+')_linux_amd64.zip" -o /tmp/nuclei.zip
+    unzip -o -q /tmp/nuclei.zip nuclei -d ~/.local/bin && chmod +x ~/.local/bin/nuclei
+    nuclei -update-templates
 
 ## Run
 
@@ -53,8 +63,9 @@ evidence it added — then the flag if found.
 - `cyf/ranker.py`      — the deterministic action ranker (the "brain")
 - `cyf/tools.py`       — tool adapters, all real (file/strings/binwalk+extract/
                           exif/RsaCtfTool/Zeratool/stegseek/zsteg/volatility/
-                          sqlmap/ffuf/net_probe/radare2+objdump/tshark); each
-                          skips cleanly if its binary isn't installed
+                          sqlmap/ffuf/net_probe/radare2+objdump/tshark/jwt_tool/
+                          nuclei/sherlock); each skips cleanly if its binary
+                          isn't installed
 - `cyf/flag_miner.py`  — regex + bounded decode ladder (base64/32/hex/rot13/
                           rot47/atbash/urldecode/morse/gzip+zlib/xor1/xor_crib)
 - `cyf/engine.py`      — the orchestration loop (the contribution)
@@ -112,8 +123,43 @@ model system, not a missing adapter:
 
 Optional environment for the network-facing adapters (all skip cleanly if unset):
 
-    CYF_URL=http://target/path   python run.py --category web  ...   # sqlmap/ffuf
-    CYF_HOST=1.2.3.4 CYF_PORT=1337 python run.py --category pwn ...  # net_probe
+    CYF_URL=http://target/path      python run.py --category web ...    # sqlmap/ffuf/jwt_attack(replay)/nuclei
+    CYF_HOST=1.2.3.4 CYF_PORT=1337  python run.py --category pwn ...    # net_probe
+    CYF_USERNAME=someuser           python run.py --category osint ...  # sherlock
+
+## New from a "what would make this power through medium/hard challenges"
+## pass — install real tools, don't just recommend them
+
+The classifier's own `TOOLS` dict has recommended `nuclei` and `jwt_tool`
+for web since the start of this project — the engine had zero code to
+actually use either. Installed and wired for real, each verified against a
+live target, not just imported:
+
+- **`jwt_attack`** — a genuine crack-then-forge chain: finds a JWT in
+  evidence, cracks its HMAC secret against jwt_tool's own curated weak-
+  secret wordlist, then re-signs it with each common "become admin" claim
+  override and replays it against `CYF_URL`. Verified end to end against a
+  live Flask app with a weak HS256 secret (`tests/test_engine_smoke.py`).
+- **`nuclei_scan`** — known-CVE/misconfiguration scanning. Measured
+  honestly: even scoped to CTF-relevant tags, a real run took ~25-30s —
+  that's the entire "medium" budget on one tool. Needs "hard" difficulty
+  to reliably finish. It's also the wrong tool for "is there a bare
+  `.env`/`.git` at the webroot" (that's `ffuf`'s job — path fuzzing, not
+  nuclei's product/CVE-specific templates); said plainly in its own
+  docstring so nobody expects nuclei to do that.
+- **`sherlock_search`** — real, disclosed limitation: sherlock only tells
+  you WHICH sites a username is registered on, not profile *content*, so
+  it rarely produces a flag directly — it's recon evidence, same role
+  `strings`/`file` play elsewhere. Also: its unscoped default sweep
+  (400+ sites) simply didn't finish within any timeout this engine uses
+  when actually measured (many sites are slow/rate-limit datacenter IPs);
+  `config.SHERLOCK_SITES` trades sherlock's real strength (breadth) for
+  finishing at all — a curated ~13-site list that runs in ~3-10s.
+
+Installed via precompiled release binaries (nuclei — this box's Go 1.18
+can't build it from source, a real environment constraint worth knowing
+about) and `pip`/`git clone` (jwt_tool, sherlock was already present).
+See the Setup section above for exact commands.
 
 ## pwn / Zeratool — requires a patch to actually work
 
