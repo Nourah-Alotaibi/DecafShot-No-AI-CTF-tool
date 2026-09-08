@@ -97,10 +97,24 @@ tshark HTTP object export, ...) gets classified exactly like `FileId` would
 exercises a pcap → exported gzip object → decompressed → flag chain with
 no binwalk involved, isolating the actual code path.
 
-Known limitation: a tool that already ran (`ev.ran`) won't automatically
-retry just because a relevant file showed up *afterward* — that would need
-per-file re-entry tracking, not just per-tool. In practice this still
-covers the common case since extraction tools tend to rank early.
+**Update — this used to be a known limitation, now fixed**: a tool that
+already ran and found nothing didn't used to reconsider just because a
+relevant file showed up *afterward* (e.g. `RsaCtfTool` running before any
+`.pem` exists, then a later extraction reveals one). `_ingest_extracted`
+now un-marks every file-consuming tool as "already ran" whenever a genuinely
+new file appears, so the ranker gives them another shot with the new
+evidence — the engine *notices new information and reconsiders old
+conclusions*, using one plain rule, not reasoning about which tool might
+newly apply. This is the closest thing in this project to "acts like an
+agent" while staying strictly rule-based: no model, no learning, just
+"new file → stale conclusions about files get cleared." Verified for
+real, not just unit-tested in isolation:
+`tests/test_engine_smoke.py::test_tool_reconsiders_after_new_file_extracted`
+drives the *actual* engine loop end to end — `RsaCtfTool` runs first
+(no key file yet), fails cleanly ("no public key file found"), `binwalk_scan`
+later extracts a zip containing one, and `RsaCtfTool` gets re-ranked to the
+top and solves it on a genuine second attempt, confirmed by asserting the
+failed-attempt fact is still in the log alongside the final flag.
 
 ## What this can't do yet (the honest ceiling)
 

@@ -91,6 +91,16 @@ def _classify_file(ev: Evidence, f: Path, timeout: int):
             pass
 
 
+# Tools that operate on _all_files(ev) — i.e. can genuinely learn something
+# new when a fresh file appears. Network-target tools (web_sqlmap, net_probe,
+# jwt_attack, ...) aren't here: they key off config.WEB_URL/PWN_HOST, not
+# files, so a new extracted file can't change what they'd do.
+_FILE_CONSUMING_TOOLS = frozenset({
+    "strings_scan", "binwalk_scan", "reverse_analyze", "exif_scan",
+    "rsactftool", "zeratool_pwn", "stegseek", "zsteg_scan", "volatility",
+})
+
+
 def _ingest_extracted(ev: Evidence, path: Path, timeout: int = 10):
     """Call this whenever a tool PULLS a new file out of the challenge
     (binwalk extraction, a tshark HTTP object export, a zsteg -e payload,
@@ -99,13 +109,17 @@ def _ingest_extracted(ev: Evidence, path: Path, timeout: int = 10):
     this is what lets a multi-stage challenge (stego -> zip -> ELF to
     reverse) actually chain instead of dead-ending after the first extract.
 
-    Known limitation: a tool that already ran and set itself as done in
-    ev.ran won't automatically retry just because a new relevant file
-    showed up afterward (e.g. RsaCtfTool ran and found no key, then a
-    LATER extraction reveals one). That would need per-file re-entry
-    tracking, not just per-tool — not done here. In practice this still
-    covers the common case, since extraction tools (binwalk, etc.) tend to
-    rank early and run before the tools that would consume their output.
+    Also un-marks every file-consuming tool as "already ran" (see
+    _FILE_CONSUMING_TOOLS), so the ranker reconsiders them now that there's
+    something genuinely new to look at — this closes what used to be a
+    documented gap here: RsaCtfTool running early, finding no key file,
+    then a LATER extraction revealing a .pem used to mean RsaCtfTool never
+    got a second look at it. Deterministic, auditable, no learning: it's
+    one rule ("new file -> old conclusions about files are stale"), not
+    reasoning about WHICH tool might newly apply. The plain cost is a
+    tool occasionally re-running and finding nothing new a second time
+    (harmless, just spends a budget step) when the fresh file wasn't
+    relevant to it anyway.
     """
     if not path.is_file():
         return
@@ -114,6 +128,7 @@ def _ingest_extracted(ev: Evidence, path: Path, timeout: int = 10):
         return  # already ingested
     ev.extra_files.append(path)
     _classify_file(ev, path, timeout)
+    ev.ran -= _FILE_CONSUMING_TOOLS
 
 
 class Tool:

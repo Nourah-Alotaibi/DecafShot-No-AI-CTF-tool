@@ -437,6 +437,40 @@ int main() {{
         self.assertIsNone(ev.flag)
         self.assertTrue(any("no target set" in f for f in ev.facts), ev.facts)
 
+    @unittest.skipUnless(shutil.which("binwalk") and shutil.which("RsaCtfTool"),
+                          "binwalk or RsaCtfTool not installed")
+    def test_tool_reconsiders_after_new_file_extracted(self):
+        # The "smarter, still fully deterministic" fix: a tool that already
+        # ran and found nothing used to never get reconsidered even when a
+        # LATER extraction revealed exactly what it needed (documented as a
+        # known limitation when _ingest_extracted was first built). Now
+        # _ingest_extracted un-marks file-consuming tools as "ran" when a
+        # new file appears, so the ranker notices and gives them another
+        # shot — verified here for real: RsaCtfTool runs first (no key
+        # file exists yet, at the top level), fails cleanly, THEN binwalk
+        # extracts a zip containing pub.pem+cipher.txt, and RsaCtfTool
+        # must get re-ranked and actually solve it on its second run.
+        import zipfile, io
+        real_challenge = Path(__file__).resolve().parents[1] / "real_challenge"
+        if not real_challenge.exists():
+            self.skipTest("real_challenge fixture not present")
+        with tempfile.TemporaryDirectory(prefix="cyf_test_") as d:
+            buf = io.BytesIO()
+            with zipfile.ZipFile(buf, "w") as z:
+                z.writestr("pub.pem", (real_challenge / "pub.pem").read_text())
+                z.writestr("cipher.txt", (real_challenge / "cipher.txt").read_text())
+            carrier = Path(d) / "carrier.bin"
+            carrier.write_bytes(b"\x00" * 512 + buf.getvalue())
+            ev, log = hunt("crypto", "medium", str(d), verbose=False)
+        self.assertEqual(ev.flag, "CYF{f3rmat_f4ct0r1zation_15_fun}")
+        # confirm it's genuinely a *second* run, not a lucky first pass —
+        # rsactftool must appear as having failed once before succeeding
+        rsactftool_facts = [f for f in ev.facts if "rsactftool" in f.lower()
+                             or "RsaCtfTool" in f]
+        self.assertTrue(
+            any("no public key" in f for f in rsactftool_facts),
+            f"expected an initial failed attempt in the log: {ev.facts}")
+
 
 if __name__ == "__main__":
     unittest.main()
