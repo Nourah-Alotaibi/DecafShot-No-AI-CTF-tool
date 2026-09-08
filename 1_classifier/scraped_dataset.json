@@ -1,0 +1,712 @@
+[
+ {
+  "text": "Baby bear (re, 442p, 36 solved) . In this challenge we, theoretically, get a binary to reverse. Interestingly enough, it was much easier to solve is (similarly to Papa bear), without reversing anything at all. Every RE is black-box crypto if you're brave enough . The idea is that when you run the binary, it reads some random bytes from urandom, then performs some strange operations, and finally prints out binary string. The goal is to guess those random bytes, and then on the server we will get the flag. What we also get from the binary is the encrypted binary string for input we provide, even",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "RSA is easy 1 (crypto, 50p, 279 solved) . The challenge is directly stolen from Tokyo Westerns 2019 Quals. We have flag encrypted with RSA, but character by character. The way it's done, each character always gives the same ciphertext. Since we know the public key we can simply encrypt entire charset with this key, and create a mapping between letter and encrypted letter: This way we get back: HackTM{why ar3 MY pR1va7es pu8l1C ??}",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "RSA is easy 2 (crypto, 50p, 157 solved) . This challenge looks very similar to the first one, but the twist is that we don't know the public key. Despite RSA in the name, what we really have here is simply a monoalphabetic substitution cipher. We start with translating long numbers into letters: From this we get a nice: Now we proceed with tedious manual work of reconstructing the key. We can try to use some statistics: And we get: Sadly the text is short, and doesn't really match english letter statistics very well, but already first few letters help us: We can now use the fact that english h",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "barcoder (forensics/101, 51p, 37 solved). Zero technicall challenge here, just tedious manual work. We get a picture: The goal is to recover the barcode and decode it. There is nothing special really, we cut out the barcode, used stegsolve to get just one color channel to get rid of all the surroudings, and then simply painted back the missing lines. For each line there is at least a fraction left, so it's always clear how thick to make it. Finally we arrive to: And ZXing gives us the flag: CTF{way too common}",
+  "category": "forensics",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "config-me - BSidesSF 2020 CTF (reverse, 472p, 4 solved). Introduction config-me is a reversing task. It is also in the 101 category, hinting that it should be quite easy. This task contains two files: config-me an ELF binary written in Rust, and config-me.conf that contains a name, a password, a comment, a conference title and the flag. The password and flag fields are encrypted: Reverse engineering The best way to reverse a Rust binary is: you don't. Dynamic analysis The config-me binary reads the configuration from config-me.conf . It then displays Welcome back, Ron [...] , with Ron being th",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Decrypto-2 (crypto, 65p, 26 solved). In the challenge we get an encryption algorithm and encrypted svg. The algorithm is a simple stream cipher. The keystream is generated using: Keystream block comes from sha256 hashing of previously generated keystream block plus block counter, with secret key as IV. Since the next block depends only on the previous block (and first block on key ) it's clear we could technically start keystream generation from any block, assuming we know the previous block and we know the number of the block. The key observatin is that we don't need to start from the key - w",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Eavesdropper (forensics, 108p, 20 solved). In the challenge we get a wav recording of a phonecall where someone uses dial-tones to input secret code. It's rather classic forensics challenge, so we simply load the file into Audacity, and run DTMF decoder plugin. Interestingly the decoder had some issues with properly figuring out the length of the signal, outputting multiple values instead of one, but we can simply select one digit at a time. If someone is interested in doing this the hard way it's also pretty simple. We can display the wav in Audacity as spectrogram and select the frequency ra",
+  "category": "forensics",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Haystack (crypto/forensics/re, 401p, 8 solved). A very nice crypto challenge. We get a pyc file with some crypto code, and network capture with transmission of encrypted data. The forensics part is trivial. There is literally just one data stream in the pcap, so we simply use follow TCP stream feature from wireshark and save the entire payload. The reverse part is equally simple, we can just run uncompyle6 on the provided pyc and recover the source code. There were some small issues with py2/py3 string vs. bytes but eventually we have working code The code is quite simple to understand: 1. Enc",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Mpfrag (forensics, 423p, 7 solved). A rather confusing forensics task. I'm under the impression we solved this somehow not the intended way... We get a file disk.bin: Linux rev 1.0 ext2 filesystem data, UUID=07a34ef3-2282-447d-b2fd-1ade0b320153 (large files) By running binwalk on this we get an encrypted zip which contains file cloud flag.jpg . Seems like a good starting point. The challenge name and description says something about MPEG so we looked for mpg markers in the given disk image, and there were some, so we carved this out with hexeditor and got a video. The video clearly shows a pas",
+  "category": "forensics",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "RIPC4 - BSidesSF 2020 CTF (crypto/pwn, 484p, 3 solved). Introduction RIPC4 is a crypto/pwn task. It consists of two files : ripc4.c and its compiled version, ripc4 . The binary can print a string, perform hex/base64 encoding or encrypt it with RC4. Source code analysis The source code uses a structure with a function to perform base64 and hex encoding. There is no menu to print when encrypting with RC4. An union that contains the function or the RC4 state is used: The RC4 encryption allocates its state with secure malloc . This function allocates a new memory page as PROT RW . PROT RW is set t",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Toast clicker (mobile/re). There is the same code for all 3 challenges. We get android app to analyze. Toast clicker 1 (79p, 23 solved) In MainActivity.java we can see: We only need to run this code, or it's python equivalent: And we get CTF{Bready To Crumble} Toast clicker 2 (204p, 15 solved) The second flag is slightly more complex: We need 3 parts of the key. First one is in BuildConfig.java : Second one we can get from /resources/res/values/strings.xml : The last one comes from a native library in the project. If you're not feeling like reversing a native lib, in this special case you don'",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Aerofloat - Aero CTF 2020 (pwn, 100p, 63 solved). Introduction Aerofloat is a pwn task. An archive containing a binary, a libc and its corresponding loader ( ld.so ). It allows a user to input a list of rating for tickets by id. Reverse engineering The binary is very small. It contains a menu interface in which a user can insert a rating for a ticket. The binary sets an alarm that kills it 5 seconds after it is started. When a user rates a ticket, it is added in a structure on the stack. This structure looks like this : The ratings are added on a fixed-size array on the stack. There is no cana",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Drawings on the walls (forensics, 100p, 113 solved). A classic guessy forensics challenge. We get a ~2GB memdump of windows machine and we're supposed to find flags there. You can try to use volatility but it's not really useful here. It boils down to strings+grep skills. Looking for Aero{ in the memdump shows some fake flags, but when we switch to looking for unicode strings we hit unicode string A.e.r.o.{.g.0.0.d.j.0.b. .y . That's not a whole flag, but now we can look around for g00d and we find g00dj0b y..0u f1n4..11y g07 7h3 wh0l3 fl4g We can merge this and submit Aero{g00dj0b y0u f1n411y",
+  "category": "forensics",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Elderly file (warmup/re, 100p, 53 solved). In the challenge we get ELF binary and some encrypted data. Looking at the binary it turns out it's python script turned into executable by some kind of pyinstaller-like software. There is no point trying to reverse the binary, it's just python interpreter. We need to extract the pyc files inside. Initial, unsuccessful, approach was to cut out PYZ archive from the binary and then use an extractor on that. It's easy to find PYZ since it has PYZ magic, but for some reason the extractor was showing all stored modules except for main . But now that we kne",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Magic 1 (crypto, 205p, 44 solved). In the challenge we get source code and data. The code is a quite simple stream cipher. The interesting part is: This basically creates the key value which turned into bytes provides the keystream. It might seem a bit complex, but in reality this function simply checks if provided source numpy array is a magic square . line = source.reshape(-1) flattens the matrix into a single list and assert len(line) == len(set(line) & set(range(len(line)))) checks if this list contains all numbers 0..n . Then set(map(sum, chain.from iterable(( s, np.diag(s)) for s in [sou",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Navigation Journal - Aero CTF 2020 (pwn, 473p, 14 solved). Introduction Navigation Journal is a pwn task. An archive containing a binary, a libc and its corresponding loader ( ld.so ). The binary provides the user with two journals : a main journal and a sub journal. The user can open, read and close the main journal. They can open, read, write and close the sub journal. They can also change their username. This binary is a 32-bits binary. Reverse engineering The program keeps opens and closes files. To keep track of its internal state, it uses a global variable nav jr . Its type matches the f",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Password Keeper - Aero CTF 2020 (pwn, 423, 23 solved). Introduction Password Keeper is a pwn task. An archive containing a binary, a libc and its corresponding loader ( ld.so ). The binary simulates a password manager in which the user can create, delete and view passwords. It is only possible to view passwords whose owner match the current user. Reverse engineering The binary uses two global variables : the user name, stored in an array of 64 chars, and a function pointer that get used to display the user's name. Its signature is: void printer(char user) . The passwords are held in a char[0x3",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Plane Market - Aero CTF 2020 (pwn, 416p, 24 solved). Introduction Plane Market is a pwn task. An archive containing a binary, a libc and its corresponding loader ( ld.so ). The binary simulates a plane market in which the user can put planes for sale. Reverse engineering When a new plane is put for sale, the program looks for a empty spot in a global array, and fills it with a plane structure: This array can contain up to 16 planes. The program properly checks that the there is space to sell a new place. It is possible to delete and check the information of a specific plane on the market. Both",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Shell Me If You Can - Aero CTF 2020 (pwn, 205, 44 solved). Introduction Shell Me If You Can is a pwn/reverse task. An archive containing a binary, a libc and its corresponding loader ( ld.so ). The description says that firewalls can detect shellcodes. It hints that this task is a shellcoding task, and that its goal is to bypass filters that would block a shellcode. The binary waits for user input and crashes afterward. Reverse engineering The main function allocates an RWX page with mmap and a buffer of size 0x80 with calloc . It then fills the buffer with user input. A first function is call",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Ticket Storage - Aero CTF 2020 (pwn, 366p, 30 solved). Introduction Ticket Storage is a pwn/reverse task. An archive containing a binary, a libc and its corresponding loader ( ld.so ). The binary exits instantly when run. Reverse engineering As stated in the introduction, the binary exists as soon as is it started. strace is a quick way to figure out what a program does in order to understand why it does not work. It looks like the program tries to open /tmp/flag.txt which does not exists on the local system, and then exits. The program lets a user create, view and delete flight tickets. The u",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "babybof - zer0pts CTF 2020 (pwn, 590p, 17 solved). Introduction babybof is a pwn task. An archive containing a binary, and a libc is provided. Reverse engineering The binary is a baby task : it is minimalist. It only sets up the stream buffers by calling setbuf on stdin , stdout and stderr . It then read 0x200 bytes in a 32-bytes buffer and calls exit. This yields ROP, but there are only 7 gadgets in total : The binary imports function from the libc, but the global offset table is read-only. Exploitation While the global offset table is read-only, the pointers to stdin , stdout and stderr are ",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Dirty Laundry (crypto, 636p, 14 solved). A fun crypto challenge. Realized that my solution was different from the one already published on CTFtime, so decided to contribute a little. We get the challenge code and its output. Essentially, a strong 1024-bit prime is generated, and used to seed a custom prng. Then, a polynomial ax^2 + bx + c in GF(prime) is created, where c is the flag. This polynomial is then evaluated for x in [1..5] . A noisy value (generated using the custom PRNG) is added to this result, and the final result is encrypted using the Paillier cryptosystem. Here are the steps I ",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "diylist - zer0pts CTF 2020 (pwn, 453p, 36 solved). Introduction diylist is a pwn task. An archive containing a binary, a library, and its source code is provided. The binary allows the user to manage a to-do list. The list can contain a value of type char, long or double. Vulnerability The list is internally represented by a structure and an union: Unions often leads to type confusion bugs. The user is asked what type his list is prior to showing it. It is possible to confuse a long value with a string pointer, leading to an arbitrary read vulnerability. When adding a string item, its value is",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "hipwn - zer0pts CTF 2020 (pwn, 158p, 81 solved). Introduction hipwn is a pwn task. An archive containing a binary, and its source code is provided. The binary asks the user for its name, and prints it. Exploitation The binary uses gets to read the user input in a fixed-size array on the stack. There is no protection on the stack. This is the most basic case of a stack-based buffer overflow. The binary is statically compiled, so the whole libc is contianed in the bianry. It is not compiled as a position-independant executable. As a result, it is not subject to ASLR. The ROP chain used to exploi",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Hobbit (re, 525p, 22 solved). In the task we get a kernel module and a custom format binary. We also get all the rest of necessary setup to run this via qemu. The kernel module contains logic of loading the HOBBIT binaries. Our initial approach was to reverse engineer the loader, since it's doing some machine code decoding process, and get the pure code from the binary. This proved to be quite challenging, even more so if someone is not well versed in kernel functions. The loading process seems to first decode the header and then rest of the binary, both using the same The Load of the Rings fu",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Locked KitKat (forensics, 100p, 153 solved). Pretty nice and simple forensics challenge. We get image of Android device and we're supposed to extract the pattern lock. If we read a bit about it it turns out the pattern is stored at /system/gesture.key and it's just SHA hash of the pattern. We just grabbed some random cracked for that, something like and after few seconds we get back the solution: Once we input this we get: zer0pts{n0th1ng 1s m0r3 pr4ct1c4l th4n brut3 f0rc1ng}",
+  "category": "forensics",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "meowmow - zer0pts CTF 2020 (pwn, 732p, 9 solved). Introduction meowmow is a pwn task. An archive containing a kernel, a init ramdisk ( initrd ) and the source code for a vulnerable kernel module is provided. This binary is a Linux kernel module that provides a device : /dev/memo . This device can be used to store a note that can be retrieved later. Analysis When opening the device, it uses kmalloc to allocate a buffer of 0x400 bytes. Calling llseek on the device will set an internal variable to the offset requested. When reading/writing to the device, it will verify that the offset is strictly",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Nibelung (crypto, 525p, 22 solved). A very interesting crypto challenge. We get server code and a library presumably implementing a FiniteGeneralLinearGroup. It seems to provide a way to perform operations on Matrices mod p (default p is random 512 bit prime). The server turns flag into a matrix, then generates a random matrix U , encrypts the flag and sends the encryption result to us. Encryption and decryption is: The results of those operations are elements of fglg so matrices mod p. The server allows us to encrypt and decrypt data at will, but there is a small twist - we can only provide d",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "protrude - zer0pts CTF 2020 (pwn, 525p, 22 solved). Introduction protrude is a pwn task. An archive containing a binary, its source code and a libc is provided. The binary asks the user for up to 22 numbers and calculates the sum of these numbers. Vulnerability The binary allocates room on the stack with alloca . It ensure that there is no more than 22 numbers and allocates n 4 bytes. It then reads n long integers, and calculates the result. The vulnerability lies in the fact that a long integer does not have a size of 4. The allocated buffer is half too short to hold every numbers. The variab",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "QR Puzzle (re, 314p, 48 solved). In the challenge we get encryption binary, encrypted qr code and key. The goal is to decrypt the qr code to get the flag. We started off by doing some blackbox analysis of the binary, and we quickly noticed that each entry in the key files corresponds to a single swap between some adjacent cells in the matrix. It's easy to spot if you have only a single key entry, then two etc. It also became apparent that one of the positions which are swapped is defined by coordinates in parenthesis, and the other one is adjacent, with the location defined by the first number",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "ROR (crypto, 260p, 58 solved). In the task we get a short encryption code and results. The encryption is pretty simple: It's RSA-like encryption where we encrypt the value, then right-shift it and encrypt again. We know all those encryption results. One could consider brute-force over 40 bits of entropy we have here, test every possible N and e and generate potential RSA decryption exponent. However, this won't work because the parameters are generated in such a way, that this exponent might not exist at all. The key observation here is that N is created in a very strange way, and the pitfall ",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Easy strcmp (re, 265p, 57 solved). A classic password-checker RE problem. We get a binary which checks flag for us. The twist is that what we see is: And for the flag zer0pts{ CENSORED } the binary responds Wrong! so there is something more here. Once we step through this code with a debugger it turns out this strcmp call takes us to some different place, specifically to 0x001006ea . This function is: What happens is that our input if first passed through this code, and only at the very end it calls the real strcmp comparing our modified input with zer0pts{ CENSORED } . We can see that this en",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "sycall kit - zer0pts CTF 2020 (pwn, 671p, 12 solved). Introduction syscall kit is a pwn task. An archive containing a binary, and its source code is provided. The binary lets the user call syscalls with 3 arguments of its choice. Some syscalls (deemed to be dangerous) are banned. The user can call up to 10 syscalls before the program exits. Analysis There are two problems making this task hard : every dangerous (read: interesting) syscalls are banned. Besides, the binary is PIE, so no addresses are known. This means it is not possible to leak addresses, or pass valid addresses to syscalls. The",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "VM log (re, 213p, 68 solved). In the task we get a simple vm code and execution trace. The VM looks like some brainfuck, but we didn't even try to understand it. Once we run it a couple of times it becomes clear that there is some internal loop which reads a character from stdin and then dumps memory state. This suggests we can brute-force the flag byte by byte, by checking after which character the memory state matches the one in the trace log. We pretty much run the VM sending a , b , c ... and check when the output match. Then we send two characters, then three etc. We modified the vm code ",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "wysinwyg (re, 537p, 21 solved). We get yet another password checking binary. Another challenge where, similarly to easy strcmp , the binary seems to do something else than what it seems. The main claims to be: But in reality we also get a message Wrong! when we input the flag! It all comes down to what happens before main is called from the entry point. libc start main apart from pointer to main gets also some arrays with init functions. In our case interesting one is INIT 1 which is doing some crazy stuff. The important part is: It seems to spawn a monitoring process of some sort and in a loo",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "DotNetMe - VolgaCTF CTF 2020 (Reverse, 250p, 34 solved) . Introduction DotNetMe is obviously a Windows reverse task. Two binaries are provided: - A PE32+ executable file (console) - Another PE32+ DLL Both binary are .NET binaries are expected and are heavily obfuscated. Technical details At first, we could see that both of the binaries are obfuscated and hard to read: In fact, the symbol names are displayed in some kind of Unicode and all the logic is behind a \"state machine\". Each code scope is executed depending on the value of a global 32-bit integer. The first thing I did to avoid burning ",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Masterpiece (forensics, 78p, 115 solved). In the challenge we get a Snes9x state save file. This is basically a saved state of the emulator. If we ungzip this file and look at it with hexeditor we can extract some information about the game: So we know the game, and we can easily find this ROM on the internet. However just trying to load this file via load game position crashes/hangs the emulator. If you look at the specs for the save state file eg. at you will see that the file has some clear structure with sections we can easily find by looking for certain strings. Our first idea was to crea",
+  "category": "forensics",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Verifier2 (crypto, 201p, 22 solved). A very guessy challenge, if it wasn't for the organizers failure and leaking some information with the flag for Verifier1. The flag for Verifier1 said midnight{number used once or twice or more} , which clearly hints at nonce issue. In this challenge we have a service which can sign stuff for us. To get the flag we need to submit signature of some pre-defined string, however the application won't let us sign this particular string (the v1 acutally by mistake did allow this...). By looking at the length of the signature we can see it's too short for DSA/RSA,",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "AESy (crypto, 471p). In the task we can access a server, which allow us to encrypt messages, and also send encrypted messages to Alice. We also get the ciphertext of encrypted flag. If we send message to Alice two things can happen: 1. Either the response contains ! , if we send a valid message we created using the system 2. Or the response contains ? , if we send broken message If we look closely at encrypted messages and their length, we can see that: 1. There is one additional block present all the time 2. The block length is 16 bytes 3. Our inputs cause doubled response length This all lea",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Autobot (re, 281p). In the challenge we can connect to a server, and we get back a base64 encoded payload. Then the server is waiting for some input from us. If we decode the payload, we can see it's an ELF binary, which is performing a simple input-checking: It's pretty simple, there is a constant string in memory, and some permutation of indices, and our input has to match the data ordered by this permutation. The trick is that once we submit the answer, we get another payload to solve! All payloads follow the same structure, the only differences are: - size of the constant string (up to abo",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Baby rust (re, 436p). In the challenge we get a rust binary which performs a classic flag-checking. It's pretty easy to pinpoint the flag-checker function. We can either look at entry point and then at main: Or we can look backwards from the string nice job at 0x00128030. In both cases we end up at 0x001053a0. There are two important places there. First one is some constants: So we have in memory: adhmp badO|sL}JuvvFmiui{@IO}QQVRZ Now is we look at where this is used we see those 2 loops (already with some meaningful names): The second loop actually touches the constants array we have seen, an",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Extra careful bank (crypto, 388p). In the task we get access to a service where we can perform some transactions. We start with 10$ and we can transfer money to people id 1,2 or 3. We can do 10 transactions. We decided to send 1$ 10 times to id 1. After that we get encrypted listing of all transactions: Notice that we can see 10 times identical string: which is probably our ECB-encrypted transaction. After that we get to see one 500$ transaction: Finally we can submit 3 encrypted transactions to get processed, and our goal is to get 1500$. The system tells us that format of the payload is send",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Meet me there (crypto, 232p). In the task we get code and results: The idea of the code is rather simple: 1. Two separate AES keys are generated, each one with just 3 bytes secret 2. Flag is encrypted by one, and then by the other 3. We also get a single plaintext-ciphertext pair Expected solution We solved this via a simple meet-in-the-middle attack, but there is a weird thing in the code, which makes it even simpler than it was supposed to be - payloads are hex-encoded before the encryption both times. The idea of meet-in-the-middle is that we can: - For all possible key1 values encrypt the ",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Notes App (Web, 488p). For this task, a very simple Python application and its source code is provided. Sources Analysis The application let us register, login, submit a link and edit a single field \"note\" that will be displayed on /profile . The application code is pretty straightforward and allows us to insert markdown on our own profile page. The python code responsible for markdown rendering (md2html) is the following: Looking in the requirements.txt shows us that this is the latest version of markdown2 : However, I found this github issue: github issue 341 A possible injection is demonstr",
+  "category": "web",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Oldschool (crypto, 321p). In this task we get two pieces of the flag encrypted in different ways. Part 1 For the first part we get some weird picture: Which we didn't use at all. We also get encrypted flag part and hzdk{z whg mry some encrypted (by different method) hint Wqv Lvf xp \"hnovIvo\" . The task mentions that this was encrypted using some \"French\" method, so we assume it's Vigenere. Now we had no idea what is the picture and how the hint is encrypted, but just knowing that flag prefix is encrypted via Vigenere we can easily notice that hzdk is flag . From this we can immediately infer t",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "RSyay! (crypto, 396p). In the task we get the code running on the server: The idea is pretty simple: 1. There is some random RSA key 2. We get some prime m longer than RSA modulus at least by a single bit 3. We get a special value x , calculated using p and q 4. Our goal is to encrypt plaintext provided by the server Server requires the encryption in form of base64 results of: This means We need to somehow recover the modulus of the RSA key (exponent is known to be 65537). For this we have to look at value x: The key in solving this challenge is to know Euler Totient Theorem theorem Notice tha",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Secure DES (crypto, 464p). In the task we get the code running on the server. Analysis It might seem a bit complicated at first, but in reality the idea is rather simple: 1. There is some secret array key 2. We have some prime number m , selected in a very particular way to allow for easy modular sqrt calculation mod m 3. There is randomly shuffled array L with values range(0, 1024, 8) 4. There is array L2 which contains RSA-like encrypted values key[i 8:(i+1) 8] + long to bytes(L[i]) , with e=65536 (even number!) and n=m (so a prime modulus!) 5. Encryption in the application performs 128 chai",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "wooter - Byte Bandits CTF 2020 (reverse, 500p). Introduction wooter is a reverse task. It consists of a single elf64 binary, lang . Runing it prints a bad boy. Opening the binary in Ghidra shows it is very complex. It would be very time-consuming to reverse it. Identifying input Using strace shows that the binary does not issue particularly strange syscalls. It means that the binary does not interact with the filesystem. Therefore, it means that the flag is not store on the file system. The remaining options are arguments and environment. This can be checked with a watchpoint in gdb This shows",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "dyrpto (crypto, 250p, 66 solved). In the task we get some protobuf generated code, protobuf definition, actual task code and outputs. Task analysis The task is pretty straightforward: 1. Strong random 4096 bits RSA key is generated with public exponent 3 2. Flag is stored in protobuf object with id=0 and serialized to string 3. Payload is then padded with 24 urandom bytes 4. Finally it gets encrypted via RSA 5. Flag is again stored in protobuf object, now with id=1 and serialized to string 6. Payload is then padded with new set of 24 urandom bytes 7. Finally it gets encrypted via RSA We know t",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "sidhe (crypto, 300p, 29 solved). In the task we get server code and we can connect to the server. Task analysis The server code impelements Supersingular isogeny Diffie\u2013Hellman key exchange protocol. The code is simple to follow: 1. Server randomly selects a private secret 2. We can perform 300 interactions with the server 3. Each time we can provide a new public key 4. Each time we can send payload encrypted using derived shared secret 5. If we send encrypted Hello World we get back confirmation of valid message 6. If we send encrypted private secret we get back a flag 7. If we send anything ",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Klepto (crypto, 932p, 12 solved). In the task we get some code and results. Result is just RSA public key and ciphertext. The goal is to analyse the key generation logic and break the public key. Solution The generation code might look complex, but most of it is just primarity-check, so we can skip that entirely. The only useful part is: Let's look closely at: Let's rewrite this: Now: The same logic follows for q , but in this case seed is our p : There were all those small parts we skipped here, so actual p might be a bit smaller/larger, but we easily iterate over those values: This way we re",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Nibiru (crypto, 955, 10 solved). In the challenge we get a pdf with some ciphertext and description of a cryptosystem. Implement encrypt/decrypt First step to understand the task, was to actually implement the algorithm: Stage 1 Now that we can encrypt and decrypt data, we need to somehow break the ciphertext we got. In order to do that, it's much simpler to assume a different model for the encryption. Let's assume we have a map int - int where 0 - 5 means that letter A is 5th letter of the keyed alphabet, and 3 - 7 means that letter D is 7th letter of the keyed alphabet. With such model, encr",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Plaint..image (crypto, 620p, 27 solved). Pretty standard challenge, we have a jpeg image encrypted with 40-bytes long repeating key XOR. The idea is rather simple: - Use some known plaintext bytes (eg. file header) to recover part of the keystream - XOR known keystream bytes with ciphertext - Hope that this uncovers some new plaintext parts of the data, which we can \"extend\" We run: And we can see two interesting chunks: If we look inside some example JPG files with hexeditor we can see that such data in fact appear there, and that they are much longer! We can use one of them - () 56789:CDEFGH",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Rev 0 (re, 728p, 23 solved). In the task we get a simple code: And a native library to reverse. Reversing the library Flag checking logic is at 0x00100a41 . The logic is pretty clear: 1. User input is collected 2. Input is encoded into form of some arrays 3. Input is collapsed into a single number 4. This number is compared with some constant Input encoding stage 1 First step creates some arrays: Which is pretty much just creating lots of arrays [1,1] . Then: This is basically: performed for each character of the input. Notice that since this is done character by character, we don't really nee",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Space (crypto, 100p, 41 solved). The challenge code is: And we know: Solution overview So we have a known plaintext-ciphertext pair, encrypted in sequence 4 times via AES-CBC with known IV, but each AES has a key with only 2 bytes of entropy. We can't really bruteforce them just like that, because 8 bytes would be too much. But we can use meet-in-the-middle approach here: - Perform 2 encryption rounds of the known plaintext with all possible keys (2+2 bytes of entropy) - Store all results in a map ciphertext - keys - Perform 2 decryption rounds of the known ciphertext with all possible keys (2",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "OTS (crypto, 104+1p, 51 solved). Once we connect to the server we get code, public key, message and signature, and we're asked to provide new message containing word flag and valid signature. Overview The algorithm is pretty easy to follow: 1. There are 128 chunks of 16 bytes randomly generated to server as key. 2. Message is padded with lots of zeros and md5 checksum of the message is appended at the end, so that the total message length is exactly 128 bytes. 3. For i from 0 to 128 take byte message[i] and key chunk key[i] , now turn the message byte into an integer xi according to ascii tabl",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Pwnzi 1 (web, 151+4p, 28 solved). Overview In the task we get access to webpage, where we can invest money in some piramidal scheme. In the profile page we can see that there are placeholders for 2 flags. One is supposed to be visible only to admin, the other one can be purchased if we have enough Expected Interest from investments. There are also perks for uploading files and reporting pages to admin, but this is relevant only for the second part of the task, so we can skip this here. There are a couple of places in the html code and in robots which provide link to pwnzi.jar of this applicati",
+  "category": "web",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Pwnzi 2&3 (web, 117+2p & 127+2p, 42 & 37 solved). Overview We start off where we left the part 1 of the task. We managed to buy all the file upload perks and now we focus on the report to admin, file upload and getting flag 2 and 3. We're putting both here because we used exactly the same, unintended, solution to get both flags. Quick recap: - We can upload any file, incluing html with javascript. - Files are uploaded on the same domain, so we have the same origin. - We can report our uploaded files to the admin and he will open them. - Flags can only be seen from profile.html referer, and whi",
+  "category": "web",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Shor (crypto, 93+1p, 61 solved). Overview In the challenge we get 3 datasets: The idea is that we have 3 RSA public keys, 3 encrypted messages and we have results of quantum step of Shor's algorithm. The goal is to implement steps of the classical part of Shor's algorithm. Solution Once we look at the description of the algorithm on wikipedia it becomes apparent that something is not right. The algorithm suggests that if order is odd and when a^(r/2) mod N == -1 then there won't be solutions, which suggests 2 of our 3 datasets won't work. Solving simple case We can still first try to decode th",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "BabyMaze (reverse, 122p, 53 solved). The flag is on the wings of the flying plane. It is possible to get the flag without instrumenting or modifying the binary. Tested on Ubuntu 16.04, Ubuntu 18.04, and Ubuntu 20.04. You should use a system able to run the game at approximately 60 fps. It requires: sudo apt-get install freeglut3 Files: - BabyMaze 4d7aabfb62d46ea98379254a62023f178c1922c0908f3ff19634ca8c22f97cef Overview This challenge is about a game binary communication with a classic TCP server. The game shows up a 3D game containing a maze which contains a computer, a yellow box and plane fl",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Base64 Encoder - 2020 Defenit CTF (pwn, 656p, 9 solved). Introduction Base64 Encoder is a pwn task. Only a link to a web service is provided. No binary is given. This web service provides a way to encode and decode a text and a key to and from base64+ . The robots.txt file mentions /cgi-src/ . This directory contains a chall binary that is executed by the /cgi-bin/chall endpoint. The binary is a 32-bits CGI ELF. It reads input (the body of the HTTP request) and outputs HTTP headers ( Content-type: application/json ) and the response's body. Apache acts as the middleman, calling the binary, fee",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Child Encrypter - 2020 Defenit CTF (rev/crypto, 598p, 11 solved). Introduction Child Encrypter is a reverse and cryptography task. A binary, and its output are provided. The binary expects 3 arguments : the plaintext file, the output file, and a key file. Running the binary twice with the same arguments will provide a different output. When running, it generates and prints a nonce. Reverse engineering The binary is statically linked. libc functions are already visible. The function at 000014e7 opens and reads a file. The binary reads the plaintext file and the key file. It then generates 0x10 ",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Error Program - 2020 Defenit CTF (pwn, 298p, 35 solved). Introduction Error Program is a pwn task. A binary, and a libc are provided. The binary presents a menu with 3 options : buffer overflow, format string and use-after-free. The libc provided is Ubuntu GLIBC 2.27-3ubuntu1 . Reverse engineering The buffer-overflow menu lets the user read 0x108 bytes in a buffer of size 0x100 . It can only overwrite a canary, preventing the feature from being exploited. The format string menu lets the user input a string, and call printf on it, resulting in a format string vulnerability. The function checks ",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Fortune Cookie - 2020 Defenit CTF (web, 507p, 15 solved). Introduction Fortune Cookie is a web task. A full docker environment is given. It contains a node app container and a MongoDB database container. The app allows clients to log in, write information to the database and read what informations they stored. The client's username is stored in a signed cookie. The flag can be obtained if the client can provide a number such that Math.floor(Math.random() 0xdeaaaadbeef) === ${favoriteNumber} holds true. Source code review The login endpoint will allow any username, even if it is not a string. T",
+  "category": "web",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Mix Mix (re, 361p, 26 solved). In the challenge we get an ELF binary and output. The goal is to figure out inputs which would produce provided output. Analysis The main is just: So we need to provide up to 32 characters to encrypt. The encryption function is: create shuffled array This function looks a bit like RC4 initialization: It basically creates an array with numbers 0..255 and then randomly (but with static seed) swaps pairs. create some consts As name suggests, this function simply takes the above shuffled array and creates some constants. It's really not important for us what exactly ",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "MoM's touch (re, 167p, 98 solved). A classic RE challenge. We get ELF binary to reverse. Analysis The main is just: There are 2 checks, first one is inputStrlen == 0x49 so we know the flag length is 0x49 bytes long. Now the real flag checker: It seems strange, because this code is using some memory at 080492ac which we haven't seen yet, and also utilizes rand() function! We can look at this memory and follow where it's written - turns out it's in INIT 1 . This function also contains srand(0xff) . It explains how the binary uses rand() and yet the results are somehow reproducible (after all the",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Simple SPN (crypto, 766p, 6 solved). In the task we get access to a service running a custom substitution-permutation network encryption. We can send as many payloads we want to the server and the server will return encrypted ciphertext. Our goal is to recover the last XOR key applied to the ciphertext. Analysis We have SPN cipher with 8-bytes blocks and 4 rounds and only ECB mode. We don't care about the mode, because we will work only with single blocks. The encryption is: Substitution is just a static sbox and so is the permutation. Round keys are some randoms generated from static seed we ",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "warmup - 2020 Defenit CTF (pwn, 316p, 32 solved). Introduction warmup is a pwn task. A binary, and a libc are provided. The libc provided is Ubuntu GLIBC 2.23-0ubuntu11 . Reverse engineering The binary is quite small and has symbols. It opens flag.txt . It then reads 0x100 bytes in a buffer from the standard input, and calls snprintf on it, resulting in a format string vulnerability. It calls exit right after. It does not display anything, which makes it impossible to leak memory. There is a win function that displays the flag. It is located right after the vulnerable function. Exploitation Th",
+  "category": "pwn",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Baby RSA (crypto, 60p, 87 solved). Description In the task we get some code and outputs. The code is just standard RSA encryption, however the key is selected in such a way that private exponent d is divisible by some 1 << r for r = random.randint(12, 19) . Apart from public key we also get to know two special values t p and t q Solution Let's look at t p . It is (s p+1)^((d-1)/(2^r)) mod n We could rephrase this as just (s p+1)^k mod p q Now if we were to do mod p here we would have: We know that (s p+1) mod p = (s p mod p + 1 mod p) mod p = 1 mod p , therefore (s p+1)^k mod p = 1 This implie",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Crazy (crypto, 154p, 27 solved). Description In the task we get source code and outputs. The challenge encrypt the flag using mutliple different keys. Public keys we get are large composite numbers. The encryption process splits the input into bits, chunks them to the size according with the public keyb bitsize (eg. keys of 2048 bits yield chunk of size 11 since 2^11 = 2048 ). Each input bitchunk is then xored with generated keystream. Keystream generation starts with random s 0 and first keystream block is s 1 = r^2 mod n , and each consecutive block is s i+1 = s i^2 mod n , all block cut to ",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Dead drop 1 (crypto, 169p, 24 solved). Dead drop 2 (crypto, 217p, 17 solved) We put both tasks in a single writeup because attack we used breaks both challenges and there is pretty much no difference between them from our point of view. This suggests it might be an unintended vector... Description In the task we get sources one and two and also corresponding encrypted flags one and two. In the task we are facing Naccache Stern Knapsack (NSK) cryptosystem : The difference between tasks is just that p in version 1 is a composite and in version 2 it's a prime. Apart from that in version 2 we get ",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Kaffee oder Bier (re, 164p, 25 solved). Description In the task we get a binary and encrypted flag The binary seems to be just a simple encryptor. You can pass input and output files and it will perform the encryption. The main issue is that it takes quite a while to execute... We follow our mantra that every RE is just a blackbox crypto if you're brave enough , and load this into Ghidra only for a moment. Sadly it's C++ so Ghidra frowns a bit and spits out not-so-nice code. But it's enough to figure out the general idea. The important part of main is: What is important to notice here is that ",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Latte (re, 154p, 27 solved). Description In the task we get encryptor binary and encryption output The binary takes input and output file paths and also key parameter. The output file is clearly longer than the input. Blackbox analysis Some input characters gets nicely rewritten directly (eg. all capital letters), some characters are changes to some weird text representation (eg. all symbols and numbers) and also in random places we can notice weird chunks of our key parameter. Code analysis main From the main we can see: So key needs to be 16 bytes long. Rest of main is just: So the encryptio",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Merry go round (re, 80p, 60 solved). Description In the task we get a binary and result. The binary is a simple encryptor. We run it and and it will encrypt flag.txt to flag.enc . Ghidra becomes sad at this C++ binary, but fortunately it's again every RE is a blackbox crypto if you're brave enough kind of deals, and we're definitely brave! At the start of the function some static constants are generated and random is seeded. We don't really care about this, we focus on what happens with our input. The interesting part is at: Those xor functions do stuff like: and: What we can see here is that ",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Tripolar (crypto, 159p, 26 solved). Description As with most crypto challenges we get source code and encrypted flag The encryption code is pretty short: First multiprime RSA with 3 primes is generated and special public key value pk = crow(p,q,r) is calculated. Then the flag gets encrypted via RSA with e=31337 and modulus n=p q r . Finally the encrypted flag, original message hash and public key are passed again via crow Solution Judging by the flag, this is not the expected solution. We used no special theorems, just very trivial high-school level math. Recover (x+y+z) value We start off by ",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Baby RE (re, 50p, 314 solved). In the task we get a weird XML which is some configuration for We're too lazy to use such tools, and also best RE are just crypto blackboxes, so we scrolled through the XML and found: It looked promising, so we checked what would this ascii-decode into. It was not a flag yet, but we figured that we know flag format cybrics{XXX} so we did some classic quick checks and: And we got a bunch of 0x21 , so it seems every character is XORed with the same byte. So we can do: To get cybrics{w3l1C0m3 @nd G00d lUck!}",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Cat girl breach (re/misc, 273p, 19 solved). In the task we start off with a binary and encrypted flag. VBS/Powershell dropper If we look inside this binary with 7zip we notice there is a VBS script and a .bat file. The VBS simply runs the bat: And bat is really just dumping lots of ints into a file and finally converts this to a binary file: This takes a long time, so we wrote a short python script to do the same: Pyinstaller dropper What we get back is another executable. From looking at the icon, and also poking around strings it's clear this is a python executable created with pyinstaller. ",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Gif2PNG (web, 52p, 118 solved). In the task we get access to a page where we can upload GIF images and it turns them into PNGs. We have the source code so we can analyse how this conversion happens (relevant part): So we have certain whitelist for filename characters, and then there is ffmpeg conversion. The vulnerability is here: Notice that this secured filename is never used at all! The app is actually using the original name we provided! And in the whitelist we can see ' and | . Since the command running in shell (with shell=True ) is ffmpeg -i 'uploads/{file.filename}' then we can provide",
+  "category": "web",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Hellish RE (re, 50p, 134 solved). In the task we get an archive. This is important here, because the python flag checker inside the archive is impossible to reverse. The troll/trick here is that if we unpack this in two steps, first just gzip and then tar, we notice that the stored tar has a very interesting name: vos rebyc10 hellishreverse verify with cybrics{ok t4ht wA5 qu1T3 4n un3Xpec7eD w4Y}.tar We submit cybrics{ok t4ht wA5 qu1T3 4n un3Xpec7eD w4Y} to get the points.",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Hunt (web, 50p, 577 solved). In the task we get access to a simple webpage with 5 re-captcha boxes: The goal is to check all of them and submit form to get the flag. The issue is that those boxes are flying all over the screen... The important bit of the page code is: We can simply patch setTimeout function from the browser console to stop the movement: And we get: cybrics{Th0se c4p7ch4s c4n hunter2 my hunter2ing hunter2}",
+  "category": "web",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Broken Invitation (crypto, 50p, 219 solved). In the task we get a pdf with task description. Long story short, we have a textbook example of Hastad Broadcast attack here. The same message is textbook-RSA encrypted with e=3 and under different Ni values. We can simply use Chinese Reminder Theorem to get flag 3 mod N1 N2 N3 and then calculate 3rd integer root to recover the flag: And we get cybrics{h3y guY5 c0m3 t0 my p4rtY!} Notice we had to invert the bytes because for some unknown reason author decided to use unorthodox little-endian long-to-bytes conversion.",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Krevedka (forensics, 50p, 164 solved). In the task we get a 300MB pcap file to analyse (sorry, won't include it here). We know that the user who got hacked had login caleches and we're supposed to find the attacker's login. If we look for victim login we find: so a classic SQLi attack vector. The idea to find the real attacker is pretty simple: notice that there was already a session cookie included in the request! Perhaps it was set during previous attacker login? Sadly, not the case. On top of that attacker had some really interesting UA string, not very common. If we look for the UA we can ",
+  "category": "forensics",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Polyglot (re/misc, 50p, 171 solved). The challenge is sort-off matrioshka. Stage 1 We start off with some C code, which we can simply compile and run. It expects: So we can for simplicity just set char key = \"mod3r0d!\"; and run it. This spits out some C++ code Stage 2 This stage is very similar - we have code, which should drop another stage. The issue here is that the code is unrolling some recursive templates at compile time and we need to optimize this. We have: And we need the value of: t1 optimization If we write down t1 in simple recursive notation we have: So it simply adds b to the res",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Too secure (crypto, 237p, 26 solved). Description In the task we get a pdf with task description. The description is not very accurate and it required a lot of hit-and-miss to actually create a proper implementation... The whole point of the task is to break a commitment scheme - user selects a certain value and some random and calculates a special value called commitment , and broadcasts this value. Randomization helps to hide the selection (others can't simply calculate commitment over all possible selections). The point is that in future the user can reveal his selection and the random, and",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "XCorp (network, 50p, 159 solved). In the task we get a pcap to analyse. Networ Miner recovers executable for us included in the pcap. It's a simple .NET binary, with most important part of the code being: First static buffer is: And second one: RC4 is a stream cipher, so we could use the xcorporation plaintext and ciphertext to recover keystream, and decrypt prefix of the flag, but this is not very useful. We actually need to find the valid username. Grepping through the pcap we notice an interesting UTF string u17ra h4ck3r , which turns out to be the valid RC4 passphrase: And we get: cybrics{",
+  "category": "forensics",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "ArchRide (re, 456p, 36 solved). Description We get a bzip2 archive with a surprise. The archive contains ELF binary. There is a hint: Analysis The binary is pretty simple: There are 2 functions with some xor checks on the input parameters, looks rather Z3-able. Once you pass the checks, the binary executes: This basically XORs the key % 0xd with some constant array in memory, and saves this in place of surprise file. And this file is again a bzip2 archive with a binary, which looks very similar, just the xor checks (and so key) are different, and so is the architecture of the binary! Solution ",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "bakflip&sons (crypto, 925p, 14 solved). Description In the task we get access to a remote service running some code Analysis The code is basically running weird ECDSA signature oracle. We can submit messages to sign and we can provide a bitmask, which is used to derive public key point. There is a 101 bit secret private key, and public key point is created as secret ^ mask G . We can interact with the oracle 71 times. The goal is to sign a special message please give me the flag , which normally the service rejects. In general there are 2 approaches in tasks like this: - Some sort of blinding ",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "DLPoly (crypto, 676p, 28 solved). Description In the task we get some sage results We have here a Polynomial Ring over GF(p) and a discrete logarithm problem to solve. The data provided are not very accurate: - They seemingly provide G^x while in reality it's G^x % n - Task claims the unknown part of the flag is 7 bytes while in reality it's only 6 Anyway, we know polynomial n and ct = G^flag % n and our task is to recover the flag. Solution Reduce the problem a bit From solving RSA Poly we know that phi(n) for polynomials in PolynomialRing(GF(p)) is (p^f1.degree()-1) (p^f2.degree()-1) ....(p^",
+  "category": "crypto",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Invisible Maze (misc/re, 936p, 13 solved). Description In the task we get a gameboy game rom. The game is just moving around with a sprite of a flag. The intro says you will get the flag if you place the flag in the right location. Analysis Blackbox We almost managed to solve this just by strings+blackbox crypto approach, because there is: Our first guess (and rightly so!) was that the string before Way to go! is in fact encrypted flag. But it wasn't just a simple XOR, and we didn't want to spend too much time trying to blindly bash it (although I'm pretty sure we would have got it, considerin",
+  "category": "reverse",
+  "source": "TFNS/writeups"
+ },
+ {
+  "text": "Notesy (crypto, 100p, 1064 solves). The flag is not in the flag{} format. HINT: If you have the ability to encrypt and decrypt, what do you think the flag is? HINT: PL Version for ENG version scroll down Pod wskazanym adresem znajduje si\u0119 strona z textboxem, kt\u00f3ry szyfruje wpisany text. Strona robi\u0142a zapytanie GET do skryptu encrypt.php, kt\u00f3ry jako parametr m przyjmowa\u0142 wiadomo\u015b\u0107 do zaszyfrowania. Placeholder w tekst boksie brzmia\u0142 Give me like a note dude , javascript odmawia\u0142 szyfrowania wiadomo\u015bci kr\u00f3tszych ni\u017c 5 znak\u00f3w. Pr\u00f3bowali\u015bmy na prawd\u0119 r\u00f3\u017cnych rzeczy, wysy\u0142ania wiadomo\u015bci bardzo kr\u00f3",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "ones and zer0es (crypto, 50p, 987 solves). eps1.1 ones-and-zer0es c4368e65e1883044f3917485ec928173.mpeg PL Version for ENG version scroll down Pobieramy wskazany plik. Jego zawarto\u015b\u0107 to: 01100110011011000110000101110100011110110101000001100101011011110111000001101100011001010010000001100001011011000111011101100001 01111001011100110010000001101101011000010110101101100101001000000111010001101000011001010010000001100010011001010111001101110100 00100000011001010111100001110000011011000110111101101001011101000111001100101110011111010010000001001001001001110111011001100101 00100000011011100110010101",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "wh1ter0se (crypto, 50p, 753 solves). Note: The flag is the entire thing decrypted eps1.7 wh1ter0se 2b007cf0ba9881d954e85eb475d0d5e4.m4v PL Version for ENG version scroll down Pobieramy wskazany plik. Jego zawarto\u015b\u0107 to: EOY XF, AY VMU M UKFNY TOY YF UFWHYKAXZ EAZZHN. UFWHYKAXZ ZNMXPHN. UFWHYKAXZ EHMOYACOI. VH'JH EHHX CFTOUHP FX VKMY'U AX CNFXY FC OU. EOY VH KMJHX'Y EHHX IFFQAXZ MY VKMY'U MEFJH OU. Nie jest to cezar ani nic podobnego, ale wygl\u0105da na jaki\u015b szyfr podstawny. Po chwili kombinowania, postanawiamy wrzuci\u0107 to do jakiego\u015b odpowiedniego solvera, z dobrym skutkiem: BUT NO, IT WAS A SHORT ",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "zer0-day (crypto, 50p, 824 solves). eps1.9 zer0-day b7604a922c8feef666a957933751a074.avi PL Version for ENG version scroll down Pobieramy wskazany plik. Jego zawarto\u015b\u0107 to: RXZpbCBDb3JwLCB3ZSBoYXZlIGRlbGl2ZXJlZCBvbiBvdXIgcHJvbWlzZSBhcyBleHBlY3RlZC4g\\n VGhlIHBlb3BsZSBvZiB0aGUgd29ybGQgd2hvIGhhdmUgYmVlbiBlbnNsYXZlZCBieSB5b3UgaGF2\\n ZSBiZWVuIGZyZWVkLiBZb3VyIGZpbmFuY2lhbCBkYXRhIGhhcyBiZWVuIGRlc3Ryb3llZC4gQW55\\n IGF0dGVtcHRzIHRvIHNhbHZhZ2UgaXQgd2lsbCBiZSB1dHRlcmx5IGZ1dGlsZS4gRmFjZSBpdDog\\n eW91IGhhdmUgYmVlbiBvd25lZC4gV2UgYXQgZnNvY2lldHkgd2lsbCBzbWlsZSBhcyB3ZSB3YXRj\\n aCB5b3UgYW5kIHlvdXIgZGFyayBzb3Vsc",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Flash (forensics, 100p, 809 solves). We were able to grab an image of a hard drive. Time to find out what's on it. . PL Version for ENG version scroll down Dostajemy 128MB obraz dysku. Nie my\u015bleli\u015bmy nawet o tym, \u017ceby go montowa\u0107, bo spodziewali\u015bmy si\u0119 pustego dysku (pisz\u0105c writeup pokusili\u015bmy si\u0119 o to i si\u0119 nie\u017ale zdziwilismy ). Pierwsz\u0105 rzecz\u0105 jaka przysz\u0142a nam do g\u0142owy by\u0142 photorec , kt\u00f3ry nie znalaz\u0142 nic ciekawego, dlatego wykonalismy strings flash c8429a430278283c0e571baebca3d139.img | grep flag . Dostajemy flag\u0119 flag{b3l0w th3 r4dar} . ENG Version 128MB disk image was provided. We were e",
+  "category": "forensics",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Keep Calm and CTF (forensics, 100p, 1064 solves). My friend sends me pictures before every ctf. He told me this one was special. Note: this flag doesn't follow the \"flag{}\" format PL Version for ENG version scroll down Pierwsz\u0105 rzecz\u0105 jak\u0105 robimy w takich sytuacjach jest przejrzenie hexdumpu, tak na wszelki wypadek. Mo\u017ce na ko\u0144cu jest dopisany jeszcze jeden plik np. .zip albo .png z flag\u0105. Zrobili\u015bmy to poleceniem xxd img.jpg | less . I mamy nast\u0119pn\u0105 flag\u0119. ENG Version The first thing we do in similar cases is to look inside the hexdump of the file, just in case. Sometimes there can be another",
+  "category": "forensics",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Transfer (forensics, 100p, 541 solves). PL ENG I was sniffing some web traffic for a while, I think i finally got something interesting. Help me find flag through all these packets. net 756d631588cb0a400cc16d1848a5f0fb.pcap Pobrany plik pcap \u0142adujemy do Wiresharka \u017ceby po chwili przegl\u0105dania transmisji HTTP (menu File - Export Objects - HTTP) znale\u017a\u0107 nast\u0119puj\u0105cy kod \u017ar\u00f3d\u0142owy programu: W tej samej transmisji (opcja Follow TCP Stream) by\u0142a r\u00f3wnie\u017c zakodowana wiadomo\u015b\u0107. Po odwr\u00f3ceniu wszystkich algorytm\u00f3w otrzymujemy taki program dekoduj\u0105cy: python import string import random from base64 import b",
+  "category": "forensics",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "pcapin (forensics, 150p, 41 solves). We have extracted a pcap file from a network where attackers were present. We know they were using some kind of file transfer protocol on TCP port 7179. We're not sure what file or files were transferred and we need you to investigate. We do not believe any strong cryptography was employed. Hint: The file you are looking for is a png pcapin 73c7fb6024b5e6eec22f5a7dcf2f5d82.pcap PL Version for ENG version scroll down Dostajemy plik .pcap. Jest w nim tylko jeden interesuj\u0105cy stream tcp, wi\u0119c wyci\u0105gamy od razu z niego dane (tylko wysy\u0142ane z serwera do klienta,",
+  "category": "forensics",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Airport (forensics, 200p). PL version for ENG version scroll down Dostajemy folder z czteroma nieoznaczonymi zdj\u0119ciami lotnisk i nast\u0119puj\u0105cym pngem: Steghide is a steganography program that is able to hide data in various kinds of image- and audio-files. Pr\u00f3bujemy uruchomi\u0107 program na jpgu (na pngach niczego nie wykrywa) i dostajemy zapytanie o has\u0142o. Warto by\u0142oby dowiedzie\u0107 si\u0119, co to za lotniska, u\u017cywaj\u0105c google images dostajemy tak\u0105 oto list\u0119: Jos\u00e9 Mart\u00ed International Airport Hong Kong International Airport Los Angeles International Airport Toronto Pearson International Airport Jak mo\u017cnaby ",
+  "category": "forensics",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "sharpturn (forensics, 400p, 110 solves). I think my SATA controller is dying. sharpturn.tar.xz-46753a684d909244e7d916cfb5271a95 PL Version for ENG version scroll down Dostajemy zip z czym\u015b co mo\u017ce by\u0107 tylko zawarto\u015bci\u0105 folderu .git . Wypakowywujemy wi\u0119c sobie z niego dane (zrobili\u015bmy to za pomoc\u0105 pythona, import zlib i zlib.decompress, ale po zastanowieniu w sumie wystarczy\u0142by pewnie git checkout ;) ). Po chwili zauwa\u017camy \u017ce co\u015b si\u0119 nie zgadza - hash pliku sharp.cpp jest inny ni\u017c powinien. Patrzymy wi\u0119c na rewizje po kolei - rewizja pierwsza ma dobry hash. Rewizja druga... ju\u017c nie. Napisali\u015bmy",
+  "category": "forensics",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "precision (pwn, 100p, 272 solves). PL ENG nc 54.173.98.115 1259 precision a8f6f0590c177948fe06c76a1831e650 Pobieramy udost\u0119pnion\u0105 binark\u0119 i na pocz\u0105tek sprawdzamy jakie utrudnienia przygotowali nam autorzy. Wida\u0107, \u017ce niedu\u017ce ;). Kr\u00f3tka analiza w IDA pokazuje nam, \u017ce program: 1. Realizuje w\u0142asn\u0105 wariacj\u0119 stack guard (dla ma\u0142ego utrudnienia jako liczb\u0119 zmiennoprzecinkow\u0105). 2. Wypisuje adres bufora oraz za pomoc\u0105 scanf pobiera do niego od nas dane (za pomoc\u0105 specyfikatora %s nieograniczaj\u0105cego wielko\u015b\u0107). 3. Sprawdza warto\u015b\u0107 cookie/canary, wypisuje nasz bufor i wychodzi za pomoc\u0105 zwyk\u0142ego ret . Ma",
+  "category": "pwn",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "FTP2 (pwn, 300p, ? solves). PL ENG nc 54.172.10.117 12012 ftp 0319deb1c1c033af28613c57da686aa7 Pobieramy zalinkowany plik i \u0142adujemy do IDY. Jest to faktycznie, zgodnie z opisem, serwer FTP - ten sam co w zadaniu FTP (re 300). Wiemy \u017ce flaga znajduje si\u0119 gdzie\u015b na serwerze. Mamy te\u017c username i has\u0142o. Spr\u00f3bowali\u015bmy najpierw dorwa\u0107 si\u0119 do serwera FTP w cywilizowany spos\u00f3b - po prostu \u0142\u0105cz\u0105c si\u0119 klientem FTP. Niestety, nie wysz\u0142o (ani filezilla, ani webowe klienty nie da\u0142y rady - jednak wida\u0107 ten serwer FTP nie by\u0142 tak kompatybilny jak mogliby\u015bmy liczy\u0107). Napisali\u015bmy wi\u0119c trywialnego klienta FTP,",
+  "category": "pwn",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "rhinoxorus (pwn, 500p, ? solves). Dostajemy program i analizujemy go. Po uruchomieniu wczytuje on zawarto\u015b\u0107 pliku password.txt do zmiennej globalnej, i zaczyna nas\u0142uchiwa\u0107 na porcie 24242 i forkuje si\u0119 dla ka\u017cdego po\u0142\u0105czenia. Ka\u017cdy fork wczytuje 256 bajt\u00f3w od usera i wywo\u0142uje jak\u0105\u015b funkcj\u0119 z globalnej tablicy funkcji: Ka\u017cda z funkcji jest podobna, i wygl\u0105da mniej wi\u0119cej tak: Od razu wida\u0107 \u017ce \u0142atwo wywo\u0142a\u0107 przepe\u0142nienie bufora, ale niestety - stos jest chroniony kanarkami wi\u0119c nie b\u0119dzie tak \u0142atwo. W kodzie wida\u0107 te\u017c nieu\u017cywan\u0105 nigdzie funkcj\u0119 socksend kt\u00f3ra wysy\u0142a podany w argumencie bufor do ",
+  "category": "pwn",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Hacking Time (re, 200p, 180 solves). PL ENG We\u2019re getting a transmission from someone in the past, find out what he wants. HackingTime.nes Pobieramy udost\u0119pniony plik, kt\u00f3ry okazuje si\u0119 obrazem aplikacji na Nintendo Entertainment System, 8-bitow\u0105 konsol\u0119, kt\u00f3r\u0105 ka\u017cdy zna i lubi :). Zadanie polega na podaniu has\u0142a, kt\u00f3re jednocze\u015bnie b\u0119dzie flag\u0105 w tym zadaniu. Zamiast statycznie analizowa\u0107 to zadanie, spr\u00f3bujemy rozwi\u0105za\u0107 je \"na \u017cywo\" w emulatorze FCEUX z jego zintegrowanym debuggerem. Kr\u00f3tka eksperymentacja pozwala nam stwierdzi\u0107, \u017ce sprawdzenie has\u0142a opr\u00f3cz zmiany samego bufora z has\u0142em w pa",
+  "category": "reverse",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "FTP (re, 300p, 214 solves). We found an ftp service, I'm sure there's some way to log on to it. nc 54.172.10.117 12012 ftp 0319deb1c1c033af28613c57da686aa7 PL Version for ENG version scroll down Pobieramy zalinkowany plik i \u0142adujemy do IDY. Jest to faktycznie, zgodnie z opisem, serwer FTP. W stringach znajduj\u0105cych si\u0119 w binarce znajdujemy napis zawieraj\u0105cy wszystkie komendy wspierane przez serwer (w helpie): USER PASS PASV PORT NOOP REIN LIST SYST SIZE RETR STOR PWD CWD Przegl\u0105damy chwil\u0119 funkcje znajduj\u0105ce si\u0119 w binarce, i najciekawsza wydaje sie ta odpowiadaj\u0105ca \"nieudokumentowanej\" funkcji ",
+  "category": "reverse",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "wyvern (re, 500p, 96 solves). PL Version for ENG version scroll down To zadanie prawdopodobnie by\u0142oby bardzo trudne do zrobienia \"klasycznie\" (w ko\u0144cu 500 punkt\u00f3w), ale nam uda\u0142o si\u0119 je zrobi\u0107 bardzo szybko za pomoc\u0105 statycznej analizy (i odrobiny intuicji, a.k.a. zgadywania). Otwieramy binark\u0119, i wita nas \u015bciana kodu napisanego w C++ (tzn. \u015bciana asemblera, kt\u00f3ra pewnie powsta\u0142a ze \u015bredniej ilo\u015bci kodu napisanego w C++ z szablonami, ale tak czy inaczej do\u015b\u0107 przyt\u0142aczaj\u0105ca). Zamiast zabiera\u0107 si\u0119 na \u015blepo do analizy krok po kroku przegl\u0105damy kod statycznie, i znajdujemy ciekawy fragment: secret",
+  "category": "reverse",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Alexander Taylor (recon, 100p, 424 solves). PL Version for ENG version scroll down Dostajemy link od kt\u00f3rego mo\u017cemy wystartowa\u0107 Pod linkiem jest pierwsza zagadka: CSAW 2015 FUZYLL RECON PART 1 OF ?: Oh, good, you can use HTTP! The next part is at /csaw2015/<the acronym for my university's hacking club . Odszukujemy informacje o uczelni Alexandra Taylora na podstawie jego profilu na linkedin i jest to University of South Florida. Sprawdzamy jak nazywa si\u0119 klub komputerowy tej uczelni i URL jego strony zaczyna sie od wcsc Przechodzimy wi\u0119c do i dostajemy kolejn\u0105 zagadk\u0119: CSAW 2015 FUZYLL RECON P",
+  "category": "osint",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Julian Cohen (recon, 100p, 883 solves). PL Version for ENG version scroll down Bardzo kr\u00f3tkie zadanie. Wyszukiwanie Juliana Cohena, zaw\u0119\u017cone do tematyki CTF\u00f3w pozwala bardzo szybo trafi\u0107 na jego twittera (@HockeyInJune) gdzie wprost umie\u015bci\u0142 flag\u0119 w jednym z wpis\u00f3w flag{f7da7636727524d8681ab0d2a072d663} ENG Version Very short challenge. Searching for Julian Cohen, filtered for CTF quickly gave us his twitter account (@HockeyInJune) where he plainly placed the flag in one of the posts: flag{f7da7636727524d8681ab0d2a072d663}",
+  "category": "osint",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Lawn Care Simulator (web, 200p, 450 solves). PL Version for ENG version scroll down Zadanie polega\u0142o na zalogowaniu si\u0119 do konta premium w internetowym symulatorze hodowania trawy. Standardowe pr\u00f3by wykonania SQL Injection na polach formularza nie przynios\u0142y efekt\u00f3w, ale pozwoli\u0142y zaobserwowa\u0107, \u017ce dane wpisane w pole z has\u0142em s\u0105 hashowane po stronie przegl\u0105darki jeszcze przed wys\u0142aniem. Zaj\u0119li\u015bmy si\u0119 wi\u0119c podmienianiem parametr\u00f3w w formularzu po operacji hashowania. Co prawda pole z has\u0142em po stronie przegl\u0105darki by\u0142o sprawdzane aby upewni\u0107 si\u0119 \u017ce nie jest puste, ale za pomoc\u0105 Tamper Data spra",
+  "category": "web",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Weebdate (web, 500p, 69 solves). PL Version for ENG version scroll down Zadanie polega\u0142o na zdobyciu has\u0142a oraz sekretnego kodu TOTP wykorzystywanego do podw\u00f3jnej autentykacji dla u\u017cytkownika pewnego serwisu internetowego. Zadania nie uda\u0142o nam sie finalnie rozwi\u0105za\u0107, ale jedynie z braku czasu (znale\u017ali\u015bmy kluczow\u0105 podatno\u015b\u0107 na kilka minut przed ko\u0144cem CTFa). Niemniej kilkana\u015bcie minut wi\u0119cej wystarczy\u0142oby na uporanie si\u0119 z zadaniem, bo wiedzieli\u015bmy jak nale\u017cy to zrobi\u0107. To co uda\u0142o nam si\u0119 ustali\u0107 jest na tyle warto\u015bciowe, \u017ce postanowili\u015bmy to opisa\u0107. Has\u0142o u\u017cytkownika mo\u017cna by\u0142o uzyska\u0107 za p",
+  "category": "web",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "AES (crypto, 200p). PL Version for ENG version scroll down Zadanie polega\u0142o na odzyskaniu wektora inicjalizacyjnego IV dla szyfru AES na podstawie znajomo\u015bci wiadomo\u015bci, cz\u0119\u015bci klucza oraz cz\u0119\u015bci zaszyfrowanego tekstu. Dane by\u0142y przekazane za pomoc\u0105 pomazanego zdj\u0119cia kodu: Wynika z nich \u017ce dysponujemy: Cz\u0119\u015bci\u0105 klucza 5d6I9pfR7C1JQt z brakuj\u0105cymi ostatnimi 2 bajtami Wiadomo\u015bci\u0105 The message is protected by AES! Fragmentem zaszyfrowanego tekstu fe000000000000000000000000009ec3307df037c689300bbf2812ff89bc0b49 (przez 0 oznaczam padding nieznanych element\u00f3w) Pierwszy krokiem, po zapoznaniu si\u0119 z za",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Offensive 100 (web, 100p) . PL For eng scroll down W tym zadaniu dostajemy stron\u0119 z 3 sekcjami: Przycisk Sign up Przycisk Sign in Tabela z logiem logowa\u0144 W tym zadaniu trzeba by\u0142o zauwa\u017cy\u0107 2 rzeczy: Czasami, loguj\u0105c si\u0119, zamiast zalogowa\u0107 si\u0119 na swoje konto zostajemy zalogowani na konto osoby kt\u00f3ra zalogowa\u0142a si\u0119 w tym samym czasie. Dok\u0142adnie co minut\u0119, loguje si\u0119 kto\u015b z id r\u00f3wnym 0 (przypuszczamy, \u017ce jest to konto na kt\u00f3re mamy si\u0119 dosta\u0107) \u0141\u0105cz\u0105c te dwa zjawiska postanawiamy zalogowa\u0107 si\u0119 na swoje konto dok\u0142adnie w zerowej sekundzie. Nie dzia\u0142a, robimy reload strony iiii... ENG In this task w",
+  "category": "web",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "RSA (crypto, 100p). PL Version for ENG version scroll down Zadanie polega\u0142o na odszyfrowaniu wiadomo\u015bci szyfrowanej za pomoc\u0105 RSA maj\u0105c dost\u0119p do klucza publicznego. Wiadomo\u015b\u0107 to: kPmDFLk5b/torG53sThWwEeNm0AIpEQek0rVG3vCttc= A klucz: -----BEGIN PUBLIC KEY----- MDwwDQYJKoZIhvcNAQEBBQADKwAwKAIhALYtzp8lgWNXI9trGI8S8EacvuDLxdrL NsNuDJa26nv8AgMBAAE= -----END PUBLIC KEY----- Zadanie wspomnia\u0142o te\u017c, \u017ce klucz publiczny nie jest ca\u0142kiem poprawny i brakuje mu jakiego\u015b bitu. Dekodujemy klucz publiczny i uzyskujemy: n = 82401872610398250859431855480217685317486932934710222647212042489320711027708 e = 6553",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "She said it doesn't matter (misc/stego, 100p). PL Version ENG W zadaniu dostajemy obrazek png z zepsutym nag\u0142\u00f3wkiem. Rozpakowujemy zawarto\u015b\u0107 pliku i za pomoc\u0105 pozyskanych pikseli tworzymy obrazek, w kt\u00f3rym ukryta jest flaga. Musimy ustawi\u0107 dobre wymiary obrazka, kt\u00f3re r\u00f3\u017cni\u0105 sie od odczytanych z nag\u0142\u00f3wka. Po paru pr\u00f3bach odnajdujemy w\u0142a\u015bciwe warto\u015bci. i w wyniku otrzymujemy: ENG Version We get png picture with broken header checksum. With pixels extracted from file we make picture using them. We have to set good size of picture and mode, since data from broken header are misleading. After some",
+  "category": "stego",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Web 100 (web, 100p). PL ENG W zadaniu dostajemy prost\u0105 stron\u0119 wy\u015bwietlaj\u0105c\u0105 ilo\u015b\u0107 pieni\u0119dzy na koncie oraz okienko do aktywacji kod\u00f3w. Zostaje nam udost\u0119pniony jednorazowy kod do\u0142adowuj\u0105cy 10$. Po u\u017cyciu kodu dostajemy komunikat, \u017ce ci\u0105gle mamy za ma\u0142o pieni\u0119dzy, zatem musimy znale\u017a\u0107 jaki\u015b spos\u00f3b na wielokrotne u\u017cycie tego samego kodu lub rozgry\u017a\u0107 jak program weryfikuje kody. Zacz\u0119li\u015bmy od \u0142atwiejszego. Z kodami rabatowymi kojarzy si\u0119 szczeg\u00f3lnie jeden powszechny exploit: race condtition. Usuwamy ciasteczka \u017ceby pozby\u0107 si\u0119 sesji i wysy\u0142amy par\u0119 zapyta\u0144 z tym samym kodem jednocze\u015bnie, po od\u015bwie",
+  "category": "web",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Bodu (crypto, 175p). PL ENG Zostaj\u0105 nam dane klucz publiczny i zaszyfrowana wiadomo\u015b\u0107, zacznijmy od spojrzenia jak wygl\u0105da klucz publiczny: Od razu rzuca si\u0119 w oczy dosy\u0107 spory exponent (najcz\u0119\u015bciej widzi si\u0119 nale\u017c\u0105ce do liczb pierwszy Fermata, a wi\u0119c 3, 5, 17, 256, 65536 ) Czyli szukamy jakiego\u015b ataku na RSA(mo\u017cliwe, \u017ce exponent), z pomoc\u0105 przychodzi nam Boneh Durfee Attack U\u017cycie sprowadza si\u0119 do podstawienia naszego n i e, po chwili dostajemy: === solutions found === x: 166655144474518261230652989223296290941028672984834812738633465334956148666716172 y: -162050613577994014722476030403919482",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Strange 150 (forensics, 150p). PL ENG W tym zadaniu zostanie przetestowana nasza umiej\u0119tno\u015b\u0107 otwierania du\u017cych obrazk\u00f3w, dostajemy plik strange.png wa\u017c\u0105cy 16MB ale pojawia si\u0119 jeden problem: Tak, zgadza si\u0119, obrazek ma 344987x344987 pikseli, nawet z 1 bitow\u0105 map\u0105 daje nam du\u017co za du\u017co wymaganej pami\u0119ci. (Tutaj sp\u0119dzili\u015bmy troch\u0119 czasu na pr\u00f3bowanie gotowych program\u00f3w obs\u0142uguj\u0105cych du\u017ce pliki, lecz nie przynios\u0142o to \u017cadnego efektu wi\u0119c t\u0105 cz\u0119\u015b\u0107 pomijamy :) ) Nale\u017ca\u0142oby zagl\u0105dn\u0105\u0107 do \u015brodka tej binarki, \u017ceby dowiedzie\u0107 si\u0119 co tak na prawd\u0119 tam w \u015brodku siedzi. Okazuje si\u0119, \u017ce znaczn\u0105 wi\u0119kszo\u015b\u0107 pl",
+  "category": "forensics",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Impossible (web, 225p). PL ENG Wed\u0142ug opisu zadania, flaga jest schowana na stronie Mo\u017cemy tam zak\u0142ada\u0107 konta, ale musz\u0105 one zosta\u0107 aktywowane \u017ceby si\u0119 zalogowa\u0107. Jak zwykle zaczynamy od \u015bci\u0105gni\u0119cia robots.txt aby sprawdzi\u0107 co autorzy strony chc\u0105 przed nami ukry\u0107. ma tylko jeden wpis: User-agent: Disallow: /backup Pod znajdziemy zrzut ca\u0142ej strony. Znacz\u0105co u\u0142atwia nam to zadanie. W functions.php znajduje si\u0119 mini-implementacja bazy danych: function username exist($username) { $data = file get contents('../users.dat'); $users = explode(\"\\n\", $data); foreach ($users as $key = $value) { $user da",
+  "category": "web",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Crytpo 100 (crypto, 100p). PL ENG Tre\u015b\u0107 zadania by\u0142a nast\u0119puj\u0105ca \"Przechwycono rozmow\u0119 hackera w kt\u00f3rej wymienia tajne has\u0142o. Prawie na pewno jest alfabetem morsa. G\u0142upi protok\u00f3\u0142 usun\u0105\u0142 wszystkie spacje. Odnajd\u017a has\u0142o.\" Rozwi\u0105zanie to dctf{md5}. U\u017cyli\u015bmy kodu z przerabij\u0105c go dodaj\u0105c obs\u0142ug\u0119 cyfr i ograniczaj\u0105c obs\u0142ug\u0119 liter do A-F. Jednak zwraca\u0142 co\u015b oko\u0142o 20 milion\u00f3w mo\u017cliwych hashy. Pr\u00f3bowali\u015bmy te\u017c r\u00f3\u017cnych s\u0142ownikowych solver\u00f3w, ale bez skutku. Po jedenastu godzinach(z 24)organizatorzy zorientowali si\u0119, \u017ce zadanie jest niemo\u017cliwe do zrobienia. Zmienili kod zadania na: Teraz nie trudno sie ",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "danklang (re, 100p). if you see this task while scroling you have been visited by the reversing task of the 9447 ctf good flags and points will come to you but only if you submit '9447{ dankcode main.dc }' to this task. main.dc PL ENG Przepe\u0142nione memami zadanie (co wida\u0107 nawet po wst\u0119pie). Dostajemy d\u0142ugi kod w nieistniej\u0105cym j\u0119zyku. Ci\u0119\u017cko go czyta\u0107, wi\u0119c zaczynamy od przepisania go literalnie do pythona: main1.py. Wida\u0107 \u017ce jest niesamowicie nieoptymalny - wi\u0119c po prostu uruchomienie kodu main1.py prawdopodobnie nie sko\u0144czy\u0142oby si\u0119 za naszego \u017cycia (a na pewno nie w trakcie trwania CTFa) Roz",
+  "category": "reverse",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "dub-key (crypto, 120p). My friend set up a small signing scheme, however she won't let me sign stuff. Can you get it signed? Find it at dub-key-t8xd5pn6.9447.plumbing port 9447 dub-key.py PL ENG Rozpoczeli\u015bmy od analizy algorytmu podpisywania i jego w\u0142asno\u015bci (w skr\u00f3cie - podpisywanie polega na tym \u017ce zmieniamy wiadomo\u015b\u0107 w graf, i podpis to iloczyn d\u0142ugo\u015bci wszystkich cykli w wiadomo\u015bci). Niestety, nie uda\u0142o nam si\u0119 sko\u0144czy\u0107 pisa\u0107 pe\u0142nego ataku przed ko\u0144cem CTFa, ale w ostatnich godzinach zdecydowali\u015bmy si\u0119 wykona\u0107 trywialny atak na algorytm podpisywania. Ot\u00f3\u017c w tym zadaniu mo\u017cemy podpisa\u0107 dow",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "randBox (crypto, 120p). PL ENG nc randBox-iw8w3ae3.9447.plumbing 9447 Zadanie polega\u0142o na po\u0142\u0105czeniu si\u0119 z serwerem a nast\u0119pnie na z\u0142amaniu 10 szyfr\u00f3w (w praktyce tylko 7 by\u0142o unikalnych), przy u\u017cyciu nie wi\u0119cej ni\u017c 21 pr\u00f3b. Z\u0142amanie ka\u017cdego szyfru nale\u017ca\u0142o udowodni\u0107 poprzez wys\u0142anie wiadomo\u015bci, kt\u00f3ra po zakodowaniu da wylosowany przez serwer ci\u0105g znak\u00f3w. Kod ca\u0142ego rozwi\u0105zania znajduje sie tutaj a sesja rozwi\u0105zuj\u0105ca tutaj Szyfr 1 Pierwszy szyfr to standardowy szyfr Cezara, wi\u0119c do jego z\u0142amania potrzeba nam informacji o przesuni\u0119ciu . Uzyskujemy j\u0105, poprzez wys\u0142anie na serwer pojedy\u0144czego zna",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "sanutf8y check (web, 1p). PL ENG Po wej\u015bciu na stron\u0119 ukazuje nam si\u0119: Nie mo\u017cemy skopiowa\u0107 tego tekstu ze strony poniewa\u017c s\u0105 to jedynie dziwne unicodowe znaki wygl\u0105daj\u0105ce jak litery. Musimy wi\u0119c przepisa\u0107 flag\u0119: 9447{ThiS iS what A flAg Looks LIke} ENG version When we enter given website we see: We can't simply copy this text from webpage since those are strange unicode symbols resembling ascii characters. We need to type down the flag: 9447{ThiS iS what A flAg Looks LIke}",
+  "category": "web",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "4042 (Misc/Crypto, 100p). PL ENG Dostajemy plik kt\u00f3ry mamy zdekodowa\u0107. Podpowied\u017a stanowi 4042 oraz rok 2005 . Pozwala nam to dotrze\u0107 do RFC4042: kt\u00f3re w ramach \u017cartu opisuje kodowanie UTF-9. Domy\u015blamy si\u0119, \u017ce w\u0142a\u015bnie z takim kodowaniem mamy do czynienia i w celu odczytania flagi musimy napisa\u0107 dekoder. Ka\u017cdy znak jest kodowany na 9 bitach, gdzie najstarszy bit oznacza \u017ce znak jest kontynuowany na kolejnym bajcie. Pozosta\u0142e bity okre\u015blaj\u0105 znak. Piszemy wi\u0119c prosty kod: Kt\u00f3ry dla ci\u0105gu bit\u00f3w oraz pozycji startowej zwraca zdekodowany znak oraz ostani\u0105 u\u017cyt\u0105 pozycj\u0119. Dane wej\u015bciowe traktujemy jak",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Bonsai XSS Revolutions (Web/Network, 200p). What is your browser(User-Agent)? hakoniwaWebMail 20151124.zip Requirement:.NET Framework 4.5 PL ENG Za\u0142\u0105czona do zadania by\u0142a mocno zobfuskowana aplikacja .NETowa. By\u0142a to symulacja przegl\u0105darki, w kt\u00f3rej u\u017cytkownik logowa\u0142 si\u0119 do swojej poczty. Z pocz\u0105tku postanowili\u015bmy powalczy\u0107 z sam\u0105 aplikacj\u0105. Cz\u0119\u015bciowo uda\u0142o nam sie zdeobfuskowa\u0107 plik wykonywalny narz\u0119dziem de4dot . Nast\u0119pnie utworzyli\u015bmy now\u0105 aplikacj\u0119 .NETow\u0105 i za\u0142adowali\u015bmy oryginalny program za pomoc\u0105 refleksji: To pozwoli\u0142o nam r\u0119cznie tworzy\u0107 instancje klas i wywo\u0142ywa\u0107 metody. W g\u0142\u00f3wnej ",
+  "category": "web",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Connect the server (Web/Network, 100p). PL ENG Po po\u0142\u0105czeniu si\u0119 z serwerem za pomoc\u0105 nc dostajemy: Wpisanie dowolnego loginu tak\u017ce nie daje \u017cadnych efekt\u00f3w. Pr\u00f3bowali\u015bmy podej\u015b\u0107 do tego zadania z r\u00f3\u017cnych stron, bez efekt\u00f3w. W ko\u0144cu uznali\u015bmy, \u017ce skoro zadanie wspomina o wolnym po\u0142\u0105czeniu to mo\u017ce spr\u00f3bujemy ataku czasowego albo pr\u00f3by wyczerpania w\u0105tk\u00f3w serwera. Jednak w trakcie pisania skryptu zauwa\u017cyli\u015bmy do\u015b\u0107 dziwny wynik: Nasz\u0105 uwag\u0119 zwr\u00f3ci\u0142y niepi\u015bmienne znaki o numerze ascii 8, czyli backspace. Ot\u00f3\u017c serwer wypisywa\u0142 flag\u0119, ale by\u0142o to niewidoczne w konsoli. SECCON{Sometimes what you see i",
+  "category": "web",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Entry form (Web/Network, 100p). PL ENG Formularz pod podanym linkiem pozwala\u0142 nam na podanie adresu e-mail oraz nazwy u\u017cytkownika. Po wys\u0142aniu podzi\u0119kowa\u0142 nam za podanie informacji, ale w rzeczywisto\u015bci niczego nie wysy\u0142a\u0142. Kr\u00f3tka zabawa z modyfikacj\u0105 warto\u015bci niczego nam nie da\u0142a wi\u0119c postanowili\u015bmy si\u0119 rozejrze\u0107. Okaza\u0142o si\u0119, \u017ce serwer webowy ma w\u0142\u0105czone listowanie i pod znale\u017ali\u015bmy dodatkowo katalog SECRETS oraz plik register.cgi bak . Pierwszy katalog nie by\u0142 dost\u0119pny, ale drugi z plik\u00f3w da\u0142 nam kod \u017ar\u00f3d\u0142owy naszego formularza. Najciekawsza cz\u0119\u015b\u0107 wygl\u0105da\u0142a nast\u0119puj\u0105co: Jest to skrypt w Per",
+  "category": "web",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Find the prime numbers (Crypto, 200p). PL ENG Dostajemy kod skryptu pracuj\u0105cego na serwerze. Skrypt szyfruje pewn\u0105 wiadomo\u015b\u0107 za pomoc\u0105 szyfru Pailliera a nast\u0119pnie podaje nam zaszyfrowan\u0105 wiadomo\u015b\u0107 oraz kilka innych parametr\u00f3w. Naszym zadaniem jest z\u0142ama\u0107 szyfr. Szyfr jest lekko zbli\u017cony do szyfrowania metod\u0105 RSA i jego \u0142amanie przebiega w do\u015b\u0107 podobny spos\u00f3b. Pierwszym krokiem do z\u0142amania szyfru jest uzyskanie informacji o liczbie n kt\u00f3ra jest podstaw\u0105 dla operacji reszty z dzielenia podczas szyfrowania. Wykorzystujemy tutaj informacje przychodz\u0105ce z serwera: Jak wida\u0107 serwer za ka\u017cdym razem ",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Forth (Pwn, 150p). Connect to 136.243.194.49:1024 and get a shell. PL ENG \u0141\u0105cz\u0105c si\u0119 z podanym serwerem dostajemy tak\u0105 odpowied\u017a: yForth? v0.2 Copyright (C) 2012 Luca Padovani This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you are welcome to redistribute it under certain conditions; see LICENSE for details. Forth pozwala nam na wykonanie systemowych komand za pomoc\u0105 s\" komenda\" system (spacja przed komend\u0105 jest wa\u017cna) Spr\u00f3bujmy zatem wy\u015bwietli\u0107 zawarto\u015b\u0107 aktualnego katalogu: s\" ls\" system flag.txt README.gpl run.sh yforth ok Zobaczmy co si\u0119 znajduje w pliku flag.txt",
+  "category": "pwn",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "HD44780 (embedded, 150p, 40 solves). The logic states of the GPIOs have been recorded Figure out the displayed message. You're gonna need this here PL ENG Dostajemy paczk\u0119 z sze\u015bcioma zdj\u0119ciami i sze\u015bcioma plikami, kt\u00f3re zosta\u0142y nazwane RSPI GPIO 23.txt. Na zdj\u0119ciach widzimy 4 wierszowy wy\u015bwietlacz pod\u0142\u0105czony do raspberry pi. Po nazwie zadania mo\u017cemy wywnioskowa\u0107, \u017ce jest to wy\u015bwietlacz oparty o sterownik Hitachi HD44780. Pliki tekstowe zawieraj\u0105 dwie linijki danych pierwsza to czas, druga stan lini. Ze zdj\u0119\u0107 wida\u0107, \u017ce wy\u015bwietlacz i raspberry pod\u0142aczone s\u0105 w nast\u0119puj\u0105cy spos\u00f3b: Haczykiem w tym",
+  "category": "hardware",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "TinyHosting (web, 250p, 71 solves). A new file hosting service for very small files. could you pwn it? PL ENG Pod znajduje si\u0119 formularz umo\u017cliwiaj\u0105cy wysy\u0142anie plik\u00f3w na serwer. W kodzie HTML znajduje si\u0119 komentarz: <!-- <a href=\"./?src=\" src</a -- Po dodaniu do url ?src=1 mo\u017cemy zobaczy\u0107 kod strony: <?php $savepath=\"files/\".sha1($ SERVER['REMOTE ADDR'].$ SERVER['HTTP USER AGENT']).\"/\"; if(!is dir($savepath)){ $oldmask = umask(0); mkdir($savepath, 0777); umask($oldmask); touch($savepath.\"/index.html\"); } if((@$ POST['filename']) && (@$ POST['content']) ){ $fp = fopen(\"$savepath\".$ POST['filen",
+  "category": "web",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "Fridginator (Crypto/Web, 200p). My brother John just bought this high-tech fridge which is all flashy and stuff, but has also added some kind of security mechanism which means I can't steal his food anymore... I'm not sure I can survive much longer without his amazing yoghurts. Can you find a way to steal them for me? PL ENG \u0141\u0105czymy si\u0119 ze wskazanym adresem. Trzeba zarejestrowa\u0107 swojego u\u017cytkownika. Zaczynamy od sprawdzenia co mo\u017cemy zrobi\u0107. Mo\u017cemy dodawa\u0107 'jedzenie' do lod\u00f3wki, wyci\u0105ga\u0107 swoje jedzenie, oraz wyszukiwa\u0107 u\u017cytkownik\u00f3w i jedzenie. Ta ostatnia opcja wydaje si\u0119 ciekawa, poniewa\u017c oba",
+  "category": "crypto",
+  "source": "p4-team/ctf"
+ },
+ {
+  "text": "ASIS CTF Final 2015 - Biglie (Forensic, 100pts). Problem We've got pcap file. This is network communication with 0bin.asis.io server, which is a service with encrypted pastebins. Our goal is to find the flag. Solution Uloaded pastebins are encrypted with Stanford Javascript Crypto Library (SJCL) library ( It uses AES algorithm at 128, 192 or 256 bits. The key needed to decrypt pastebin is added to url after (hash) mark what means that is not sent to the server. Full url of encoded pastebin look like this example: But in pcap file we can only reveal fragment without the key, for example: It ret",
+  "category": "forensics",
+  "source": "bl4de/ctf"
+ },
+ {
+  "text": "Lawn Care Simulator (Web, 200pts). Problem Lawn Care Simulator is a simple web application to show how the grass is growing. Yeah, ok. It has premium content, but it requires registration. Registration not working and there's no way to log in as we can't register any account. Solution Phase 1 - explore .git repository In source code of index.html there's an AJAX request to Git repository (to find current application version). So we can exploit .git folder on remote server. Following SHA-1 Git objects hash, we can find and download source files (not all, unfortunately): Here's tree hash: And he",
+  "category": "web",
+  "source": "bl4de/ctf"
+ },
+ {
+  "text": "Hack.lu CTF 2015 - Module Loader (Web, 100pts). Problem 100 Points by lucebac (Web) Since his students never know what date it is and how much time they have until the next homework's deadline, Mr P. H. Porter wrote a little webapp for that. Solution We get simple web application with two available options: After quick research there's an obvious LFI (Local File Include) We can include any file using url: And here's source code of timer module - it's just printed out, PHP code is not executed here: Also, we can display .htaccess , which contains some directory with quite \"obvious\" name :P Let'",
+  "category": "web",
+  "source": "bl4de/ctf"
+ },
+ {
+  "text": "Ernst Echidna (Web, 50pts). Problem Can you hack (url provided) website? The robots.txt sure looks interesting. Solution We've got simple web page, which allows us to register an account: Register form: robots.txt reveals one hidden path: At above url there's hidden administration panel and we need to has administration rights to access it. After successful registration a cookie with MD5 hash of our login is set: Simple change cookie content to MD5('admin') and refreshing browser tab allows to access panel: ...and reveals the flag:",
+  "category": "web",
+  "source": "bl4de/ctf"
+ },
+ {
+  "text": "In Recorded Conversation (Forensic, 25pts). Problem Can you find the flag? Solution We get pcap (irc.pcap) file with some IRC conversation. Quick \"Follow the stream\" reveals this fragment: And we can simply collect fragments of the flag: CTF{some leaks are good leaks }",
+  "category": "forensics",
+  "source": "bl4de/ctf"
+ },
+ {
+  "text": "Wallowing Wallabies (Web, 25pts). Problem Wallowing Wallabies provides enterprise contract management - we'd like to find out how easy it is to perform corporate espionage against them. Solution We've got web page with no visible navigation or form except Home page: Quick look at robots.txt reveals some hidden content: Web page at /deep-blue-sea/team/vendors contains form with two fields: Text field was vulnerable to XSS and allows to put payload with simple JavaScript to steal cookie: This payload was saved in message sent to site admin. At simple PHP script saves stolen cookie: After a coupl",
+  "category": "web",
+  "source": "bl4de/ctf"
+ },
+ {
+  "text": "Unicle (Web, 200pts). Problem OSaaS is the new trend for 2016! Store your object directly in the cloud. Get rid of the hassle of managing your own storage for object with Osaas. Unickle currently offers a beta version that demonstrates how OSaaS will make the internet a better place... One object at a time!! Solution After opening url, there's a simple HTML table with all stored objects. There's only one parameter I could manipulate - Category id (cat). Phase one - SQL Injection Quick research revealed that 'cat' parameter is vulnerable to SQL Injection. Valid payload should contain standard c",
+  "category": "web",
+  "source": "bl4de/ctf"
+ },
+ {
+  "text": "Duckprint (Web, 100pts). See if you can steal the admin's duck print and validate it! When calculating the SHA, leave the periods in Solution We get simple web application, where we can register user and generate something called \"Duck print\" (hash calculated from couple of values). There's also validation of \"Duck print\", but only admin user is allowed. After registering a user, Duck print is generated with some additional factors (cookie in format {username:username,admin:0} and token): Also, in generate.php source code there's a comment with SQL query, where we can find easy to exploit SQL ",
+  "category": "web",
+  "source": "bl4de/ctf"
+ },
+ {
+  "text": "Student Grades (Web, 50pts). We are trying to find out what our grade was, but we don't seem to be in the database... Can you help us out? Solution We can see web application to check some user grades: When username is entered and 'Check my grades' pressed, little JavaScript code is executed sending AJAX request after some additional data manipulation: After quick investigation of response, there's SQL query in the comment: There's obvious SQL Injection flaw in this query (no data sanitization, used LIKE '%' and so on). I've created simple script to generate payloads and prepare them using for",
+  "category": "web",
+  "source": "bl4de/ctf"
+ },
+ {
+  "text": "Global Page (Web, 50pts). Problem Welcome to TokyoWesterns' CTF! url: Solution GlobalPage welcomes us with a very short list of available links: After clicking one of them , we've got a list of PHP warnings from include() function: What's most interesting here, a lot of them starting from language identifiers, like pl , pl-PL , en-US and similar. The only place where those identifiers exist is Accept-Language header in HTTP request: It seemed that application uses them to display user content in valid language (eg. for me it was Polish) and this feature is vulnerable to LFI (Local File Include",
+  "category": "web",
+  "source": "bl4de/ctf"
+ },
+ {
+  "text": "0ldsk00lBlog (Web, 80pts). --- Problem Description: I stumbled across this kinda oldskool blog. I bet it is unhackable, I mean, there's only static HTML. Service: Solution The page is a very simple static HTML: No robots.txt , no admin , literally nothing :) But there's a mention about Git, so let's try path to .git/logs/HEAD : Bingo! As I was describing a few weeks ago, how to hack Git repositories (see directories leaks/README.md git) - I've just followed my way and I've got the flag very soon: So the flag is: IW{G1T 1S 4W3SOME}",
+  "category": "web",
+  "source": "bl4de/ctf"
+ }
+]

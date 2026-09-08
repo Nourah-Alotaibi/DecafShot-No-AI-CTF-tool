@@ -254,13 +254,38 @@ def _starter_dataset():
     ]
 
 
-def train(save=True):
+SCRAPED_PATH = Path(__file__).with_name("scraped_dataset.json")
+
+
+def _scraped_dataset():
+    """Real labeled examples pulled from public CTF write-up repos by
+    scrape_ctf_writeups.py — see that file for the method. Returns [] if
+    it hasn't been run, so train() always works with just the hand-written
+    seed set as a fallback."""
+    if not SCRAPED_PATH.exists():
+        return []
+    try:
+        rows = json.loads(SCRAPED_PATH.read_text())
+        return [(r["text"], r["category"]) for r in rows if r.get("text") and r.get("category")]
+    except Exception:
+        return []
+
+
+def train(save=True, use_scraped=True):
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.linear_model import LogisticRegression
     from sklearn.pipeline import Pipeline
     import joblib
 
-    data = _starter_dataset()
+    hand_written = _starter_dataset()
+    scraped = _scraped_dataset() if use_scraped else []
+    # dedupe on exact text match (a handful of repos can share a challenge)
+    seen, data = set(), []
+    for text, cat in hand_written + scraped:
+        if text not in seen:
+            seen.add(text)
+            data.append((text, cat))
+
     X, y = zip(*data)
     pipe = Pipeline([
         ("tfidf", TfidfVectorizer(ngram_range=(1, 2), min_df=1, sublinear_tf=True)),
@@ -269,7 +294,9 @@ def train(save=True):
     pipe.fit(X, y)
     if save:
         joblib.dump(pipe, MODEL_PATH)
-        print(f"[+] trained on {len(data)} examples -> {MODEL_PATH.name}")
+        print(f"[+] trained on {len(data)} examples "
+              f"({len(hand_written)} hand-written + {len(scraped)} scraped, "
+              f"deduped) -> {MODEL_PATH.name}")
     return pipe
 
 
