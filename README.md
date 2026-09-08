@@ -1,4 +1,6 @@
-# CYF Project — deterministic adaptive CTF engine
+# DecafShot
+
+**Decaffeinated. De-AI'd CTF kit.**
 
 Three parts that fit together. All deterministic — no generative model
 required to run the engine, no internet needed at solve time.
