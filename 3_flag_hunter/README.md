@@ -114,10 +114,30 @@ model system, not a missing adapter:
   primitive built from the binary's specific allocator behavior — even
   angr-based AEG research tools still struggle here.
 - **Leak-then-second-stage pwn** (info-leak → compute base → build a
-  ROP chain) is a fundamentally different two-phase pipeline `Zeratool`'s
-  single-shot point-to-win doesn't attempt. `ropper`/`one_gadget` are
-  installed and unwired — the missing piece is the orchestration logic
-  connecting a leak to a chain-builder, not the tools themselves.
+  ROP chain) — investigated for real, not assumed. `Zeratool` actually
+  *has* a full leak+ROP-chain pipeline built in
+  (`point_to_ropchain_filter`/`get_leak_rop_chain`, using pwntools' `ROP`
+  class), not just the single-shot point-to-win path already wired in.
+  Found and fixed a real crash in its format-string detector too
+  (`end_state` dereferenced without a None-check; both fixes are in
+  `patches/zeratool-fixes.patch`). But testing it against three
+  progressively more realistic non-PIE/NX/no-canary binaries (all built
+  with this box's current gcc/glibc — not artificially minimal) hit a
+  genuine, deep wall: **none had a usable `pop rdi; ret` gadget anywhere**
+  — modern glibc (2.34+) dropped the classic `__libc_csu_init` pattern
+  that used to guarantee one, and pwntools' `ROP.call()`/`setRegisters()`
+  (including its SROP fallback path) can't proceed without it. The
+  format-string route sidesteps that gadget requirement entirely (printf's
+  own arg-fetching does the register control) — but after fixing the
+  crash, zeratool's detector still reported "Can not determine vulnerable
+  type" against a textbook, verified-vulnerable `printf(buf)` case.
+  `ropper`/`one_gadget` are installed; the missing piece isn't
+  orchestration glue, it's gadget availability + working automated
+  format-string modeling against this toolchain — a real, current,
+  actively-discussed problem in pwn/CTF circles, not something a config
+  change or a quick patch fixes. Stage 2 (post-leak) is *not* the
+  bottleneck — libc itself has thousands of gadgets once its base is
+  known; verified separately with `ropper` against the loaded libc.
 - **Physical hardware** (real UART/JTAG wiring, RF capture) can't be
   automated in software at all.
 
@@ -163,7 +183,7 @@ See the Setup section above for exact commands.
 
 ## pwn / Zeratool — requires a patch to actually work
 
-`pip install zeratool` on its own is broken for real use, two separate ways:
+`pip install zeratool` on its own is broken for real use, three separate ways:
 
 1. **Hard crash**: its `puts`/shellcode hooks call `state.solver.BVV(...)`,
    an API current `angr`/`claripy` removed — every run crashes with
@@ -175,10 +195,13 @@ See the Setup section above for exact commands.
    because that call is a stubbed SimProcedure, not real execution — so a
    *correctly*-found offset and address still segfaults at delivery time.
    This is an extremely common real-world CTF shape, not an edge case.
+3. **Format-string detector crash**: dereferences `end_state.globals`
+   without checking `end_state` isn't `None` — crashes instead of
+   reporting "not found" whenever exploration doesn't land a match.
 
-Both are fixed in `patches/zeratool-fixes.patch` (verified: turns a hard
-crash into a correct, automatic, zero-manual-intervention flag capture on
-`challenges/pwn/ret2win`). Apply once after installing zeratool:
+All three are fixed in `patches/zeratool-fixes.patch` (verified: turns a
+hard crash into a correct, automatic, zero-manual-intervention flag
+capture on `challenges/pwn/ret2win`). Apply once after installing zeratool:
 
     pip install zeratool
     ./patches/apply_zeratool_fixes.sh

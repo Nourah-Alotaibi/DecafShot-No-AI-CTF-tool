@@ -6,9 +6,13 @@
 # "point to win" technique has no stack-alignment fallback, so it can't
 # actually deliver a payload when the win function calls something like
 # system() that needs a 16-byte-aligned stack on modern glibc — a very
-# common real-world CTF shape. Both are fixed here. Without this patch,
-# cyf/tools.py's Zeratool adapter will mostly fail even on solvable
-# challenges. See 3_flag_hunter/README.md's "pwn / Zeratool" section.
+# common real-world CTF shape. Also fixes a crash in its format-string
+# detector (dereferenced a None result). All three fixed here. Without
+# this patch, cyf/tools.py's Zeratool adapter will mostly fail even on
+# solvable challenges. See 3_flag_hunter/README.md's "pwn / Zeratool"
+# section — including the honest limitation these DON'T fix: gadget-poor
+# modern binaries (no pop-rdi anywhere) still block its ROP-chain builder,
+# and format-string detection can still legitimately report "not found."
 set -euo pipefail
 
 PKG_DIR="$(python3 -c 'import zeratool, os; print(os.path.dirname(zeratool.__file__))' 2>/dev/null)"

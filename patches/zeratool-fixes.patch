@@ -135,3 +135,18 @@
 +                log.info("[~] Alignment retry failed to even run: {}".format(e))
 +
      return send_results
+--- a/zeratool/formatDetector.py
++++ b/zeratool/formatDetector.py
+@@ -78,8 +78,11 @@
+     except (KeyboardInterrupt, timeout_decorator.TimeoutError) as e:
+         print("[~] Format check timed out")
+ 
+-    if "input" in end_state.globals.keys():
++    if end_state is not None and "input" in end_state.globals.keys():
+         run_environ["input"] = end_state.globals["input"]
+         print("[+] Triggerable with input : {}".format(end_state.globals["input"]))
++    elif end_state is None:
++        print("[~] No format-string vulnerability found (or exploration didn't "
++              "reach one) within the timeout")
+ 
+     return run_environ
