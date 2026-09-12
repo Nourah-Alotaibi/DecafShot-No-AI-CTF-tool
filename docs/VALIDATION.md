@@ -23,10 +23,13 @@ and the available environments, not every version of each upstream tool.
 | Scraper live dry-run | 89 labeled examples from one seed repository | Five categories; committed data unchanged |
 | Optional playbook miner | One synthetic frontmatter fixture passed | External full playbook corpus not remade |
 | macOS | Not run locally | Setup references reviewed; portable CI matrix added |
+| GitHub Actions portable matrix | All six jobs passed | Windows, Ubuntu and macOS; Python 3.10 and 3.13 |
 
 The new CI matrix covers Ubuntu, Windows and macOS with Python 3.10 and 3.13.
 It runs portable tests and skips unavailable integrations; it is not a provisioned
-full security-tool lab. CI execution is separate from the local results above.
+full security-tool lab. All six jobs passed for code commit `a78c5fe`:
+[verified CI run](https://github.com/Nourah-Alotaibi/DecafShot-No-AI-CTF-tool/actions/runs/34683314249).
+CI execution is separate from the local results above.
 
 Relevant WSL versions: scikit-learn 1.7.2, joblib 1.6.0, binwalk 2.3.3,
 patched Zeratool 2.2, Volatility 3 version 2.28.0, nuclei 3.11.1.
