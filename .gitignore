@@ -5,3 +5,4 @@ results.csv
 *.log
 # stray sherlock output if --no-txt is ever missing from a call site
 /3_flag_hunter/*.txt
+.venv/

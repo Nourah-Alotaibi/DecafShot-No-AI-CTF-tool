@@ -5,8 +5,7 @@ tools.py — the toolbox. Each Tool knows:
   - run(evidence): shell out (or stub), write facts/signals/text back
 
 Real adapters shell out to standard tools if installed and skip cleanly if
-not. Heavy solvers (Zeratool, RsaCtfTool) are stubs you wire to the real
-repos later — the ORCHESTRATION is the contribution, not re-implementing them.
+not. Heavy solvers (Zeratool, RsaCtfTool) have real subprocess adapters.
 """
 import os, shutil, subprocess, re
 from pathlib import Path
@@ -98,6 +97,7 @@ def _classify_file(ev: Evidence, f: Path, timeout: int):
 _FILE_CONSUMING_TOOLS = frozenset({
     "strings_scan", "binwalk_scan", "reverse_analyze", "exif_scan",
     "rsactftool", "zeratool_pwn", "stegseek", "zsteg_scan", "volatility",
+    "decode_ladder", "pcap_analyze",
 })
 
 
@@ -201,7 +201,7 @@ class BinwalkScan(Tool):
         # embedded data whenever challenge_path was a directory, which is
         # the common case (batch.py always passes one). Scan each file.
         out = "\n".join(_sh(["binwalk", str(target)], timeout)
-                         for target in _files_in(ev.challenge_path))
+                         for target in _all_files(ev))
         ev.add_text(out)
         found_embedded = bool(re.search(r"compressed|archive|zip|gzip|embedded", out, re.I))
         if found_embedded:
@@ -220,7 +220,7 @@ class BinwalkScan(Tool):
             # should try — not just more raw bytes for the flag regex.
             import tempfile
             tmpdir = tempfile.mkdtemp(prefix="cyf_binwalk_")
-            for target in _files_in(ev.challenge_path):
+            for target in _all_files(ev):
                 ex_out = _sh(["binwalk", "-e", "-M", "-C", tmpdir, str(target)], timeout)
                 ev.add_text(ex_out)
             for extracted in Path(tmpdir).rglob("*"):
@@ -304,7 +304,7 @@ class ExifScan(Tool):
     def run(self, ev, timeout):
         if not shutil.which("exiftool"):
             ev.add_fact("exiftool not installed; skipping"); return
-        out = _sh(["exiftool", ev.challenge_path], timeout)
+        out = "\n".join(_sh(["exiftool", str(f)], timeout) for f in _all_files(ev))
         ev.add_text(out)
         ev.add_fact("exif: read metadata")
 
@@ -346,7 +346,8 @@ class RsaCtfTool(Tool):
                     ct = f; break
         raw = None
         if ct is not None:
-            raw = ct.read_text(errors="replace").strip().split()[-1]
+            tokens = ct.read_text(errors="replace").strip().split()
+            raw = tokens[-1] if tokens else None
 
         # IMPORTANT: RsaCtfTool must be given ONE attack at a time — passing a
         # multi-attack list makes even a working attack report "cracking failed".

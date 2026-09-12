@@ -13,7 +13,7 @@ Auth (optional but recommended — lifts rate limit 10->30 req/min):
     export GITHUB_TOKEN=ghp_xxx
 """
 from __future__ import annotations
-import json, os, time, urllib.parse, urllib.request, sys
+import argparse, json, os, time, urllib.parse, urllib.request, sys
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -250,7 +250,7 @@ def collect(per_category: int = 8):
 
 def write_outputs(catalog: dict, outdir: Path):
     outdir.mkdir(parents=True, exist_ok=True)
-    (outdir / "tools_catalog.json").write_text(json.dumps(catalog, indent=2))
+    (outdir / "tools_catalog.json").write_text(json.dumps(catalog, indent=2), encoding="utf-8")
 
     lines = ["# CTF Tool Catalog (auto-collected from GitHub)\n",
              f"_Generated {datetime.now().strftime('%Y-%m-%d')} — ranked by "
@@ -267,19 +267,28 @@ def write_outputs(catalog: dict, outdir: Path):
         if block["meta_lists"]:
             metas = ", ".join(f"[{m['name']}]({m['url']})" for m in block["meta_lists"])
             lines.append(f"\n_Meta/awesome lists:_ {metas}\n")
-    (outdir / "tools_catalog.md").write_text("\n".join(lines))
+    (outdir / "tools_catalog.md").write_text("\n".join(lines), encoding="utf-8")
 
     # a slim TOOLS dict ready to paste into classifier.py
     slim = {cat: [t["name"] for t in block["tools"][:5]]
             for cat, block in catalog.items()}
     (outdir / "TOOLS_snippet.py").write_text(
         "# paste into classifier.py — top 5 per category, auto-ranked\n"
-        "TOOLS = " + json.dumps(slim, indent=4))
+        "TOOLS = " + json.dumps(slim, indent=4), encoding="utf-8")
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Refresh the GitHub CTF tool catalog (requires internet)")
+    ap.add_argument("count", nargs="?", type=int, default=8, help="tools per category (default: 8)")
+    ap.add_argument("--outdir", type=Path, default=Path(__file__).resolve().parent,
+                    help="output directory; defaults to the catalog consumed by the engine")
+    args = ap.parse_args()
+    if args.count < 1:
+        ap.error("count must be positive")
+    cat = collect(per_category=args.count)
+    write_outputs(cat, args.outdir)
+    print(f"\nDone. Wrote {args.outdir} (json + md + TOOLS_snippet.py)", file=sys.stderr)
 
 
 if __name__ == "__main__":
-    n = int(sys.argv[1]) if len(sys.argv) > 1 else 8
-    cat = collect(per_category=n)
-    out = Path(__file__).parent / "catalog"
-    write_outputs(cat, out)
-    print(f"\nDone. Wrote catalog/ (json + md + TOOLS_snippet.py)", file=sys.stderr)
+    main()

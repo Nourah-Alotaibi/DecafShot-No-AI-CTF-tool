@@ -1,0 +1,15 @@
+challenge,category,difficulty,solved,steps,solved_by,time_s,flag
+b64_gzip,crypto,medium,yes,3,decode_ladder,0.22,FLAG{gz1p_1ns1de_b4se64}
+rot13,crypto,medium,yes,3,decode_ladder,0.2,FLAG{c4esar_sh1ft_by_13}
+rsa_weak,crypto,medium,yes,2,rsactftool,0.75,FLAG{f3rmat_f4ct0r1zation_15_fun}
+xor_crib,crypto,medium,yes,4,decode_ladder,0.27,FLAG{r3p3ating_x0r_kn0wn_pla1nt3xt}
+zip_in_binwalk,crypto,medium,yes,6,rsactftool,1.61,FLAG{f3rmat_f4ct0r1zation_15_fun}
+embedded_archive,forensics,medium,yes,4,binwalk_scan,0.97,FLAG{binw4lk_found_the_bur1ed_arch1ve}
+pcap_creds,forensics,medium,yes,5,decode_ladder,2.66,FLAG{tshark_found_it_in_a_stream}
+pcap_http_object,forensics,medium,yes,3,binwalk_scan,1.8,FLAG{pcap_http_object_export_chained}
+firmware_dump,hardware,medium,yes,3,binwalk_scan,0.89,FLAG{f1rmw4re_h4d_4_hidden_gz1p}
+exif_leak,osint,medium,yes,1,file_id,0.06,FLAG{ex1f_c0mment_l3aks_the_flag}
+ret2win,pwn,medium,yes,2,zeratool_pwn,5.24,FLAG{r3t2win_pwn3d_by_zer4tool}
+xor_in_data,reverse,medium,yes,4,decode_ladder,1.04,FLAG{r3vers1ng_w1th_r4dare2}
+lsb_no_pass,stego,medium,yes,3,zsteg_scan,2.27,FLAG{zst3g_lsb_no_passw0rd_needed}
+steghide_weak,stego,medium,yes,2,stegseek,0.17,FLAG{st3g_crack3d_w1th_rockyou}

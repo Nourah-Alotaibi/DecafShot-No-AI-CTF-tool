@@ -1,0 +1,49 @@
+test_base64_gzip_crypto (test_engine_smoke.EngineSmokeTests) ... ok
+test_binwalk_extracts_embedded_gzip (test_engine_smoke.EngineSmokeTests) ... ok
+test_exif_comment_osint (test_engine_smoke.EngineSmokeTests) ... ok
+test_jwt_attack_cracks_weak_secret_and_forges_admin (test_engine_smoke.EngineSmokeTests) ... ok
+test_net_probe_reads_banner_from_live_socket (test_engine_smoke.EngineSmokeTests) ... ok
+test_nuclei_scan_skips_cleanly_without_target (test_engine_smoke.EngineSmokeTests) ... ok
+test_pcap_analyze_finds_flag_in_tcp_stream (test_engine_smoke.EngineSmokeTests) ... ok
+test_pwn_ret2win (test_engine_smoke.EngineSmokeTests) ... ok
+test_recursive_extraction_pcap_to_gzip_object (test_engine_smoke.EngineSmokeTests) ... ok
+test_repeating_xor_crib_crypto (test_engine_smoke.EngineSmokeTests) ... ok
+test_rot13_crypto (test_engine_smoke.EngineSmokeTests) ... ok
+test_rsa_weak_regression (test_engine_smoke.EngineSmokeTests) ... ok
+test_sherlock_finds_known_real_account (test_engine_smoke.EngineSmokeTests) ... ok
+test_tool_reconsiders_after_new_file_extracted (test_engine_smoke.EngineSmokeTests) ... ok
+test_web_ffuf_finds_exposed_file (test_engine_smoke.EngineSmokeTests) ... 127.0.0.1 - - [12/Sep/2026 11:23:38] code 404, message File not found
+127.0.0.1 - - [12/Sep/2026 11:23:38] "GET /admin HTTP/1.1" 404 -
+127.0.0.1 - - [12/Sep/2026 11:23:38] code 404, message File not found
+127.0.0.1 - - [12/Sep/2026 11:23:38] "GET /flag HTTP/1.1" 404 -
+127.0.0.1 - - [12/Sep/2026 11:23:38] "GET /flag.txt HTTP/1.1" 200 -
+ok
+test_web_sqlmap_dumps_flag_from_live_sqli (test_engine_smoke.EngineSmokeTests) ... ok
+test_zsteg_finds_lsb_payload_stegseek_cant_touch (test_engine_smoke.EngineSmokeTests) ... ok
+test_finds_all_three_prefixes (test_flag_miner.DirectFlagFinder) ... ok
+test_no_match_without_braces (test_flag_miner.DirectFlagFinder) ... ok
+test_no_false_positives_on_random_noise (test_flag_miner.FalsePositiveResistance) ... ok
+test_atbash (test_flag_miner.TruePositives) ... ok
+test_base64_of_base32 (test_flag_miner.TruePositives) ... ok
+test_base64_of_gzip (test_flag_miner.TruePositives) ... ok
+test_base64_of_zlib (test_flag_miner.TruePositives) ... ok
+test_direct (test_flag_miner.TruePositives) ... ok
+test_hex (test_flag_miner.TruePositives) ... ok
+test_repeating_key_xor_crib_raw (test_flag_miner.TruePositives) ... ok
+test_rot13 (test_flag_miner.TruePositives) ... ok
+test_rot47 (test_flag_miner.TruePositives) ... ok
+test_secret_embedded_in_surrounding_text (test_flag_miner.TruePositives) ... ok
+test_single_byte_xor_raw (test_flag_miner.TruePositives) ... ok
+test_urldecode (test_flag_miner.TruePositives) ... ok
+test_cli_information_and_validation (test_portability.PortableTests) ... ok
+test_empty_ciphertext_does_not_crash (test_portability.PortableTests) ... ok
+test_every_adapter_handles_no_dependencies_or_targets (test_portability.PortableTests) ... ok
+test_every_category_can_decode_without_external_tools (test_portability.PortableTests) ... ok
+test_inventory_is_complete_and_never_executes_tools (test_portability.PortableTests) ... ok
+test_metadata_and_binwalk_consume_extracted_files (test_portability.PortableTests) ... ok
+test_new_file_reopens_decoder_and_capture_analysis (test_portability.PortableTests) ... ok
+
+----------------------------------------------------------------------
+Ran 39 tests in 23.778s
+
+OK

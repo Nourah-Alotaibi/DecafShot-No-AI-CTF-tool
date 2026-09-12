@@ -1,0 +1,44 @@
+test_base64_gzip_crypto (test_engine_smoke.EngineSmokeTests.test_base64_gzip_crypto) ... ok
+test_binwalk_extracts_embedded_gzip (test_engine_smoke.EngineSmokeTests.test_binwalk_extracts_embedded_gzip) ... skipped 'binwalk not installed'
+test_exif_comment_osint (test_engine_smoke.EngineSmokeTests.test_exif_comment_osint) ... skipped 'exiftool not installed'
+test_jwt_attack_cracks_weak_secret_and_forges_admin (test_engine_smoke.EngineSmokeTests.test_jwt_attack_cracks_weak_secret_and_forges_admin) ... skipped 'jwt_tool not installed'
+test_net_probe_reads_banner_from_live_socket (test_engine_smoke.EngineSmokeTests.test_net_probe_reads_banner_from_live_socket) ... ok
+test_nuclei_scan_skips_cleanly_without_target (test_engine_smoke.EngineSmokeTests.test_nuclei_scan_skips_cleanly_without_target) ... skipped 'nuclei not installed'
+test_pcap_analyze_finds_flag_in_tcp_stream (test_engine_smoke.EngineSmokeTests.test_pcap_analyze_finds_flag_in_tcp_stream) ... skipped 'tshark not installed'
+test_pwn_ret2win (test_engine_smoke.EngineSmokeTests.test_pwn_ret2win) ... skipped 'zeratool or gcc not installed'
+test_recursive_extraction_pcap_to_gzip_object (test_engine_smoke.EngineSmokeTests.test_recursive_extraction_pcap_to_gzip_object) ... skipped 'tshark not installed'
+test_repeating_xor_crib_crypto (test_engine_smoke.EngineSmokeTests.test_repeating_xor_crib_crypto) ... ok
+test_rot13_crypto (test_engine_smoke.EngineSmokeTests.test_rot13_crypto) ... ok
+test_rsa_weak_regression (test_engine_smoke.EngineSmokeTests.test_rsa_weak_regression) ... skipped 'RsaCtfTool not installed'
+test_sherlock_finds_known_real_account (test_engine_smoke.EngineSmokeTests.test_sherlock_finds_known_real_account) ... skipped 'sherlock not installed'
+test_tool_reconsiders_after_new_file_extracted (test_engine_smoke.EngineSmokeTests.test_tool_reconsiders_after_new_file_extracted) ... skipped 'binwalk or RsaCtfTool not installed'
+test_web_ffuf_finds_exposed_file (test_engine_smoke.EngineSmokeTests.test_web_ffuf_finds_exposed_file) ... skipped 'ffuf not installed'
+test_web_sqlmap_dumps_flag_from_live_sqli (test_engine_smoke.EngineSmokeTests.test_web_sqlmap_dumps_flag_from_live_sqli) ... skipped 'sqlmap not installed'
+test_zsteg_finds_lsb_payload_stegseek_cant_touch (test_engine_smoke.EngineSmokeTests.test_zsteg_finds_lsb_payload_stegseek_cant_touch) ... skipped 'zsteg not installed'
+test_finds_all_three_prefixes (test_flag_miner.DirectFlagFinder.test_finds_all_three_prefixes) ... ok
+test_no_match_without_braces (test_flag_miner.DirectFlagFinder.test_no_match_without_braces) ... ok
+test_no_false_positives_on_random_noise (test_flag_miner.FalsePositiveResistance.test_no_false_positives_on_random_noise) ... ok
+test_atbash (test_flag_miner.TruePositives.test_atbash) ... ok
+test_base64_of_base32 (test_flag_miner.TruePositives.test_base64_of_base32) ... ok
+test_base64_of_gzip (test_flag_miner.TruePositives.test_base64_of_gzip) ... ok
+test_base64_of_zlib (test_flag_miner.TruePositives.test_base64_of_zlib) ... ok
+test_direct (test_flag_miner.TruePositives.test_direct) ... ok
+test_hex (test_flag_miner.TruePositives.test_hex) ... ok
+test_repeating_key_xor_crib_raw (test_flag_miner.TruePositives.test_repeating_key_xor_crib_raw) ... ok
+test_rot13 (test_flag_miner.TruePositives.test_rot13) ... ok
+test_rot47 (test_flag_miner.TruePositives.test_rot47) ... ok
+test_secret_embedded_in_surrounding_text (test_flag_miner.TruePositives.test_secret_embedded_in_surrounding_text) ... ok
+test_single_byte_xor_raw (test_flag_miner.TruePositives.test_single_byte_xor_raw) ... ok
+test_urldecode (test_flag_miner.TruePositives.test_urldecode) ... ok
+test_cli_information_and_validation (test_portability.PortableTests.test_cli_information_and_validation) ... ok
+test_empty_ciphertext_does_not_crash (test_portability.PortableTests.test_empty_ciphertext_does_not_crash) ... ok
+test_every_adapter_handles_no_dependencies_or_targets (test_portability.PortableTests.test_every_adapter_handles_no_dependencies_or_targets) ... ok
+test_every_category_can_decode_without_external_tools (test_portability.PortableTests.test_every_category_can_decode_without_external_tools) ... ok
+test_inventory_is_complete_and_never_executes_tools (test_portability.PortableTests.test_inventory_is_complete_and_never_executes_tools) ... ok
+test_metadata_and_binwalk_consume_extracted_files (test_portability.PortableTests.test_metadata_and_binwalk_consume_extracted_files) ... ok
+test_new_file_reopens_decoder_and_capture_analysis (test_portability.PortableTests.test_new_file_reopens_decoder_and_capture_analysis) ... ok
+
+----------------------------------------------------------------------
+Ran 39 tests in 4.057s
+
+OK (skipped=13)

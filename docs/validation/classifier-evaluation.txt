@@ -1,0 +1,9 @@
+hand-written:        80 examples, {'crypto': 10, 'web': 10, 'pwn': 10, 'reverse': 10, 'forensics': 10, 'stego': 10, 'osint': 10, 'hardware': 10}
+github-scraped:      142 examples, {'reverse': 30, 'crypto': 47, 'forensics': 17, 'pwn': 19, 'web': 25, 'osint': 2, 'stego': 1, 'hardware': 1}
+m0x-mined:           2481 examples, {'crypto': 400, 'pwn': 400, 'web': 400, 'osint': 400, 'forensics': 400, 'stego': 77, 'hardware': 4, 'reverse': 400}
+hand + github:       222 (deduped)
+hand + github + m0x: 2621 (deduped)
+
+hand-written only        — 5-fold CV accuracy: 0.500 (per-fold: [0.5, 0.56, 0.38, 0.56, 0.5])
+hand + github-scraped    — 5-fold CV accuracy: 0.590 (per-fold: [0.64, 0.62, 0.55, 0.55, 0.59])
+hand + github + m0x      — 5-fold CV accuracy: 0.686 (per-fold: [0.68, 0.68, 0.67, 0.73, 0.68])

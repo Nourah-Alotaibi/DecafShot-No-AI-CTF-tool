@@ -218,6 +218,8 @@ int main() {{
             ev, _ = hunt("pwn", "hard", str(binpath), verbose=False)
             self.assertEqual(ev.flag, "FLAG{r3t2win_pwn3d_by_zer4tool}")
 
+    @unittest.skipUnless(any(shutil.which(n) for n in ("RsaCtfTool", "rsactftool", "RsaCtfTool.py")),
+                         "RsaCtfTool not installed")
     def test_rsa_weak_regression(self):
         # The original hand-crafted test fixture this project shipped with;
         # keep it under test so future changes can't silently break it.

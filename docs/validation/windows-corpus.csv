@@ -1,0 +1,15 @@
+challenge,category,difficulty,solved,steps,solved_by,time_s,flag
+b64_gzip,crypto,medium,yes,3,decode_ladder,0.04,FLAG{gz1p_1ns1de_b4se64}
+rot13,crypto,medium,yes,3,decode_ladder,0.04,FLAG{c4esar_sh1ft_by_13}
+rsa_weak,crypto,medium,no,8,-,0.15,-
+xor_crib,crypto,medium,yes,3,decode_ladder,0.04,FLAG{r3p3ating_x0r_kn0wn_pla1nt3xt}
+zip_in_binwalk,crypto,medium,no,8,-,0.15,-
+embedded_archive,forensics,medium,no,8,-,0.09,-
+pcap_creds,forensics,medium,yes,2,decode_ladder,0.01,FLAG{tshark_found_it_in_a_stream}
+pcap_http_object,forensics,medium,no,8,-,0.1,-
+firmware_dump,hardware,medium,no,8,-,0.14,-
+exif_leak,osint,medium,yes,1,file_id,0.01,FLAG{ex1f_c0mment_l3aks_the_flag}
+ret2win,pwn,medium,no,8,-,0.34,-
+xor_in_data,reverse,medium,yes,2,decode_ladder,0.06,FLAG{r3vers1ng_w1th_r4dare2}
+lsb_no_pass,stego,medium,no,8,-,0.56,-
+steghide_weak,stego,medium,no,8,-,2.48,-

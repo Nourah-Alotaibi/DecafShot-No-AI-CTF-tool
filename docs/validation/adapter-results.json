@@ -1,0 +1,126 @@
+[
+  {
+    "adapter": "file_id",
+    "seconds": 0.65,
+    "candidates": [
+      "FLAG{ex1f_c0mment_l3aks_the_flag}"
+    ],
+    "facts": [
+      "file: osint_photo.jpg: jpeg image data, jfif standard 1.01, aspect ratio, density 1x1, segment length 1"
+    ]
+  },
+  {
+    "adapter": "strings_scan",
+    "seconds": 0.82,
+    "candidates": [
+      "FLAG{ex1f_c0mment_l3aks_the_flag}"
+    ],
+    "facts": [
+      "strings: 26 printable lines across files"
+    ]
+  },
+  {
+    "adapter": "decode_ladder",
+    "seconds": 0.0,
+    "candidates": [
+      "FLAG{c4esar_sh1ft_by_13}"
+    ],
+    "facts": [
+      "file: message.txt: ascii text, with no line terminators",
+      "decode_ladder solved via rot13"
+    ]
+  },
+  {
+    "adapter": "binwalk_scan",
+    "seconds": 10.18,
+    "candidates": [
+      "FLAG{f1rmw4re_h4d_4_hidden_gz1p}"
+    ],
+    "facts": [
+      "file: 400: ascii text, with no line terminators",
+      "file: 400.gz: gzip compressed data, last modified: tue sep  8 15:32:23 2026, max compression, ",
+      "binwalk: scanned for embedded data, extracted 2 file(s) (now in scope for other tools)"
+    ]
+  },
+  {
+    "adapter": "exif_scan",
+    "seconds": 0.58,
+    "candidates": [
+      "FLAG{ex1f_c0mment_l3aks_the_flag}"
+    ],
+    "facts": [
+      "exif: read metadata"
+    ]
+  },
+  {
+    "adapter": "rsactftool",
+    "seconds": 0.24,
+    "candidates": [
+      "FLAG{f3rmat_f4ct0r1zation_15_fun}"
+    ],
+    "facts": [
+      "RsaCtfTool cracked pub.pem via fermat and decrypted the flag"
+    ]
+  },
+  {
+    "adapter": "zeratool_pwn",
+    "seconds": 4.51,
+    "candidates": [
+      "FLAG{r3t2win_pwn3d_by_zer4tool}"
+    ],
+    "facts": [
+      "Zeratool ran on ret2win -> FLAG{r3t2win_pwn3d_by_zer4tool}"
+    ]
+  },
+  {
+    "adapter": "stegseek",
+    "seconds": 0.1,
+    "candidates": [
+      "FLAG{st3g_crack3d_w1th_rockyou}"
+    ],
+    "facts": [
+      "stegseek cracked embedded.bmp"
+    ]
+  },
+  {
+    "adapter": "reverse_analyze",
+    "seconds": 0.91,
+    "candidates": [
+      "FLAG{r3vers1ng_w1th_r4dare2}"
+    ],
+    "facts": [
+      "reverse_analyze: r2 static analysis on crackme (8 function lines)",
+      "reverse_analyze: dumped 2 data section(s) raw (not just printable strings) from crackme"
+    ]
+  },
+  {
+    "adapter": "zsteg_scan",
+    "seconds": 2.09,
+    "candidates": [
+      "FLAG{zst3g_lsb_no_passw0rd_needed}"
+    ],
+    "facts": [
+      "zsteg found the flag directly in lsb_stego.png -> FLAG{zst3g_lsb_no_passw0rd_needed}"
+    ]
+  },
+  {
+    "adapter": "pcap_analyze",
+    "seconds": 0.53,
+    "candidates": [
+      "FLAG{tshark_found_it_in_a_stream}"
+    ],
+    "facts": [
+      "pcap_analyze: followed 1 tcp/udp stream(s) from test.pcap, no direct flag"
+    ]
+  },
+  {
+    "adapter": "volatility",
+    "result": "invalid-image invocation only; no positive fixture",
+    "facts": [
+      "volatility ran 8 plugins on invalid.raw (no direct flag)"
+    ],
+    "sample": [
+      "Volatility 3 Framework 2.28.0\n\nOffset\tBanner\n\n\nProgress:  100.00\t\tStacking attempts finished\n\nProgress:  100.00\t\tPDB scanning finished     \n"
+    ]
+  }
+]
