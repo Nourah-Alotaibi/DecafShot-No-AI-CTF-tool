@@ -13,6 +13,14 @@ import collect_tools as c
 
 
 class CatalogTests(unittest.TestCase):
+    def test_generative_tools_are_excluded(self):
+        for description in ("Use LLMs to hide messages", "OpenAI security assistant", "generative AI solver", "Anthropic-Cybersecurity-Skills"):
+            self.assertTrue(c.is_denied({"name": "tool", "description": description}))
+        catalog = json.loads((ROOT / "tools_catalog.json").read_text())
+        for block in catalog.values():
+            for row in block["tools"] + block["meta_lists"]:
+                self.assertFalse(c.is_denied(row), row["name"])
+
     def test_ranking_filtering_and_deduplication(self):
         def repo(name, description="security tool", stars=100):
             return dict(name=name, full_name="lab/" + name, html_url="https://example.test/" + name,

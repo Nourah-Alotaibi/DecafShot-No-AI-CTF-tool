@@ -67,19 +67,6 @@
         "pinned": false
       },
       {
-        "name": "Claude-BugHunter",
-        "full_name": "elementalsouls/Claude-BugHunter",
-        "url": "https://github.com/elementalsouls/Claude-BugHunter",
-        "stars": 4266,
-        "language": "Python",
-        "description": "A Claude Code skill bundle for bug hunting and external red-team work - 82 skills, 15 slash commands, 681 disclosed-report patterns curated across 24 core vulnerability classes, plus enterprise identity + infrastructure attack matrices.",
-        "pushed_at": "2026-09-04",
-        "months_stale": 0.0,
-        "meta": false,
-        "score": 36.3,
-        "pinned": false
-      },
-      {
         "name": "ghauri",
         "full_name": "r0oth3x49/ghauri",
         "url": "https://github.com/r0oth3x49/ghauri",
@@ -760,19 +747,6 @@
         "pinned": false
       },
       {
-        "name": "conversation-steganography",
-        "full_name": "nethical6/conversation-steganography",
-        "url": "https://github.com/nethical6/conversation-steganography",
-        "stars": 1243,
-        "language": "Go",
-        "description": "Use LLMs to hide messages inside normal looking conversations",
-        "pushed_at": "2026-07-18",
-        "months_stale": 1.6,
-        "meta": false,
-        "score": 30.95,
-        "pinned": false
-      },
-      {
         "name": "SteganographierGUI",
         "full_name": "cenglin123/SteganographierGUI",
         "url": "https://github.com/cenglin123/SteganographierGUI",
@@ -893,19 +867,6 @@
         "months_stale": 0.2,
         "meta": false,
         "score": 45.4,
-        "pinned": false
-      },
-      {
-        "name": "Anthropic-Cybersecurity-Skills",
-        "full_name": "mukul975/Anthropic-Cybersecurity-Skills",
-        "url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills",
-        "stars": 32169,
-        "language": "Python",
-        "description": "817 structured cybersecurity skills for AI agents \u00b7 Mapped to 6 frameworks: MITRE ATT&CK, NIST CSF 2.0, MITRE ATLAS, D3FEND, NIST AI RMF & MITRE F3 (Fight Fraud) \u00b7 agentskills.io standard \u00b7 Works with Claude Code, GitHub Copilot, Codex CLI, Cursor, Gemini CLI & 20+ platforms \u00b7 29 security domains \u00b7 Apache 2.0",
-        "pushed_at": "2026-08-31",
-        "months_stale": 0.1,
-        "meta": false,
-        "score": 45.07,
         "pinned": false
       },
       {

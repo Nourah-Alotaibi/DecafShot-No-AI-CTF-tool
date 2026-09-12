@@ -16,6 +16,12 @@
 
 Categories: `web`, `crypto`, `reverse`, `pwn`, `forensics`, `stego`, `osint`, `hardware`, `misc`. Classification and hunting are separate commands: pass the suggested category to the hunter. Catalog recommendations do not automatically install tools or create adapters.
 
+**No generative AI or LLM runtime:** solving uses deterministic tools and rules;
+the optional classifier is TF-IDF plus logistic regression, not a language model.
+No model API key is needed. Catalog collection filters out explicitly LLM/generative-AI
+tools, and three such recommendations were removed from the saved catalog.
+Optional playbook datasets are read as text data, not executed as agent prompts.
+
 Local file solving can run offline once dependencies/resources are installed. Catalog refresh, scraping, remote targets and username searches require network access. Use active tools against your own labs or competition-authorized targets and follow the event's automation rules.
 
 ## Choose a setup

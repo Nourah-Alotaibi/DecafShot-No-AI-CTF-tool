@@ -1,6 +1,6 @@
 # CTF Tool Catalog (auto-collected from GitHub)
 
-_Generated 2026-09-04 — ranked by stars x recency. Regenerate with `python collect_tools.py`._
+_Generated 2026-09-12 — ranked by stars x recency. Regenerate with `python collect_tools.py`._
 
 
 ## web
@@ -12,7 +12,6 @@ _Generated 2026-09-04 — ranked by stars x recency. Regenerate with `python col
 | **ffuf** — Fast web fuzzer written in Go | 16,638 | Go | 2026-08-20 | [link](https://github.com/ffuf/ffuf) |
 | **dirsearch** — Web path scanner | 14,694 | Python | 2026-09-04 | [link](https://github.com/maurosoria/dirsearch) |
 | **wfuzz** — Web application fuzzer | 6,569 | Python | 2026-01-21 | [link](https://github.com/xmendez/wfuzz) |
-| **Claude-BugHunter** — A Claude Code skill bundle for bug hunting and external red-team work  | 4,266 | Python | 2026-09-04 | [link](https://github.com/elementalsouls/Claude-BugHunter) |
 | **ghauri** — An advanced cross-platform tool that automates the process of detectin | 4,076 | Python | 2025-10-04 | [link](https://github.com/r0oth3x49/ghauri) |
 | **OneListForAll** — Rockyou for web fuzzing | 3,233 | Go | 2026-03-11 | [link](https://github.com/six2dez/OneListForAll) |
 
@@ -89,7 +88,6 @@ _Meta/awesome lists:_ [awesome-hacking](https://github.com/jekil/awesome-hacking
 |------|------:|------|-----------|------|
 | **hackingtool** — ALL IN ONE Hacking Tool For Hackers | 79,311 | Python | 2026-08-23 | [link](https://github.com/Z4nzu/hackingtool) |
 | **ST3GG** — All-in-one steganography suite | 1,759 | HTML | 2026-06-15 | [link](https://github.com/elder-plinius/ST3GG) |
-| **conversation-steganography** — Use LLMs to hide messages inside normal looking conversations | 1,243 | Go | 2026-07-18 | [link](https://github.com/nethical6/conversation-steganography) |
 | **SteganographierGUI** — 将文件隐写进MP4/MKV文件中 （Embed files into MP4/MKV files.） | 949 | Python | 2026-08-18 | [link](https://github.com/cenglin123/SteganographierGUI) |
 | **horus** — An OSINT / digital forensics tool built in Python | 865 | Python | 2026-07-29 | [link](https://github.com/6abd/horus) |
 | **purrcrypt** — A fur-ociously secure encryption tool that encodes your secrets as ado | 627 | Rust | 2026-07-29 | [link](https://github.com/vxfemboy/purrcrypt) |
@@ -105,7 +103,6 @@ _Meta/awesome lists:_ [awesome-ctf-resources](https://github.com/devploit/awesom
 |------|------:|------|-----------|------|
 | **maigret** — 🕵️‍♂️ Collect a dossier on a person by username from 3000+ sites | 37,293 | Python | 2026-09-04 | [link](https://github.com/soxoj/maigret) |
 | **web-check** — 🕵️‍♂️ All-in-one OSINT tool for analysing any website | 34,671 | TypeScript | 2026-08-27 | [link](https://github.com/lissy93/web-check) |
-| **Anthropic-Cybersecurity-Skills** — 817 structured cybersecurity skills for AI agents · Mapped to 6 framew | 32,169 | Python | 2026-08-31 | [link](https://github.com/mukul975/Anthropic-Cybersecurity-Skills) |
 | **social-analyzer** — API, CLI, and Web App for analyzing and finding a person's profile in  | 23,932 | JavaScript | 2026-01-12 | [link](https://github.com/qeeqbox/social-analyzer) |
 | **spiderfoot** — SpiderFoot automates OSINT for threat intelligence and mapping your at | 21,719 | Python | 2026-04-13 | [link](https://github.com/smicallef/spiderfoot) |
 | **GHunt** — 🕵️‍♂️ Offensive Google framework. | 19,497 | Python | 2026-04-10 | [link](https://github.com/mxrch/GHunt) |

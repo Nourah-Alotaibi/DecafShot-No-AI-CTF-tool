@@ -13,7 +13,7 @@ Auth (optional but recommended — lifts rate limit 10->30 req/min):
     export GITHUB_TOKEN=ghp_xxx
 """
 from __future__ import annotations
-import argparse, json, os, time, urllib.parse, urllib.request, sys
+import argparse, json, os, re, time, urllib.parse, urllib.request, sys
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -163,7 +163,10 @@ def blob_of(repo: dict) -> str:
 
 
 def is_denied(repo: dict) -> bool:
-    return any(d in blob_of(repo) for d in DENY_SUBSTR)
+    blob = blob_of(repo)
+    return any(d in blob for d in DENY_SUBSTR) or bool(re.search(
+        r"\b(?:llms?|gpt\w*|chatgpt|openai|anthropic|claude|ollama|langchain|generative[ -]?ai)\b|"
+        r"large language model|ai[ -]powered|ai agents?", blob))
 
 
 def is_relevant(repo: dict) -> bool:

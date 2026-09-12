@@ -38,16 +38,16 @@ TOOLS = {
     "stego": [
         "hackingtool",
         "ST3GG",
-        "conversation-steganography",
         "SteganographierGUI",
-        "horus"
+        "horus",
+        "purrcrypt"
     ],
     "osint": [
         "maigret",
         "web-check",
-        "Anthropic-Cybersecurity-Skills",
         "social-analyzer",
-        "spiderfoot"
+        "spiderfoot",
+        "GHunt"
     ],
     "hardware": [
         "binwalk",
