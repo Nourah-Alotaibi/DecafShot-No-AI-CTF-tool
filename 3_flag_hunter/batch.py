@@ -37,7 +37,7 @@ def find_challenges(root: Path):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Batch-run CYF Flag Hunter")
+    ap = argparse.ArgumentParser(description="Batch-run Decaf Flag Hunter")
     ap.add_argument("folder", help="folder of challenges")
     ap.add_argument("--difficulty", default="medium",
                     choices=["easy", "medium", "hard"])

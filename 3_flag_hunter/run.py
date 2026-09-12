@@ -13,7 +13,7 @@ from cyf import hunt
 
 
 def main():
-    ap = argparse.ArgumentParser(description="CYF Flag Hunter (deterministic CTF engine)")
+    ap = argparse.ArgumentParser(description="Decaf Flag Hunter (deterministic CTF engine)")
     ap.add_argument("--path", help="challenge file or directory")
     ap.add_argument("--category", default="misc",
                     choices=["web", "crypto", "reverse", "pwn", "forensics", "stego", "osint", "hardware", "misc"],

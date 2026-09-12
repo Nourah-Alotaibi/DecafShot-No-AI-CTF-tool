@@ -28,7 +28,7 @@ def hunt(category: str, difficulty: str, challenge_path: str, verbose=True):
         if verbose:
             print(msg)
 
-    say(f"== CYF Flag Hunter ==  category={category}  difficulty={difficulty}")
+    say(f"== Decaf Flag Hunter ==  category={category}  difficulty={difficulty}")
     say(f"   budget: {budget['max_steps']} steps, {budget['timeout']}s/tool\n")
 
     for step in range(1, budget["max_steps"] + 1):

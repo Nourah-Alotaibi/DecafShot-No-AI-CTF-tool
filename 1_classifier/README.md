@@ -88,7 +88,7 @@ disclosed ceiling, not a mining bug.
 to be loaded into an LLM agent's context so the agent reasons through
 challenges live (`SKILL.md`: *"You are M0x, an autonomous CTF solver"*).
 That's the exact thing this project's `RELATED_WORK.md` positions itself
-against — CYF's whole claim is multi-category + adaptive + no generative
+against — Decaf's whole claim is multi-category + adaptive + no generative
 model. Using m0x live would just replace the deterministic engine with an
 LLM reasoning session. Its playbook *data*, mined as plain (text, category)
 pairs the same way scrape_ctf_writeups.py mines GitHub, is a different

@@ -1,4 +1,4 @@
-# CYF Flag Hunter
+# Decaf Flag Hunter
 
 A deterministic CTF investigation engine. The ranker scores adapters using category weights, optional catalog popularity and current evidence. Tools write facts, signals and extracted files; the engine re-ranks until it finds a flag or exhausts its step budget.
 

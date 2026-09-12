@@ -8,16 +8,16 @@ than scrape_ctf_writeups.py's live GitHub scrape (142 examples).
 This is a plain deterministic data extraction — reads YAML frontmatter,
 nothing else — not an invocation of that skill's own prompt/agent
 behavior. m0x-skills-ctfs is a *prompt library* for an LLM agent to
-reason with live; that's a fundamentally different thing from CYF (see
+reason with live; that's a fundamentally different thing from Decaf (see
 1_classifier/RELATED_WORK.md) and isn't touched here. Only its playbook
 *data* is used, copied out into this project — the source skill directory
 is read-only to this script, never modified.
 
 Category mapping: m0x's top-level playbook categories are web, crypto,
 pwn, reverse, forensics, osint, misc, ai-ml, blockchain, cloud, malware.
-CYF's classifier only knows 8: web, crypto, pwn, reverse, forensics,
+Decaf's classifier only knows 8: web, crypto, pwn, reverse, forensics,
 stego, osint, hardware. web/crypto/pwn/reverse/forensics/osint map
-directly; ai-ml/blockchain/cloud/malware have no CYF equivalent and are
+directly; ai-ml/blockchain/cloud/malware have no Decaf equivalent and are
 dropped; misc is NOT dropped wholesale — it's routed by technique tag,
 since that's where m0x files stego and hardware/firmware content instead
 of giving them their own top-level folders.
@@ -41,7 +41,7 @@ DIRECT_MAP = {"web": "web", "crypto": "crypto", "pwn": "pwn",
               "reverse": "reverse", "forensics": "forensics", "osint": "osint"}
 
 # misc-only: route by technique tag since m0x has no dedicated stego/
-# hardware folders (CYF needs both).
+# hardware folders (Decaf needs both).
 MISC_TECHNIQUE_ROUTE = [
     (re.compile(r"steg|lsb|spectrogram", re.I), "stego"),
     (re.compile(r"firmware|jtag|uart|hardware|iot|spi|can.?bus|rf\b|sdr\b", re.I), "hardware"),
